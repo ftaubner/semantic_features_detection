@@ -154,16 +154,12 @@ class InteriorDataset(utils.Dataset):
         instance_im = imageio.imread(instance_mask_path)
         nyu_im = imageio.imread(nyu_mask_path)
         instance_ids = np.unique(instance_im)
-        print(instance_ids)
         for instance_id in instance_ids:
             binary_mask = np.where(instance_im == instance_id , True, False)
-            print(instance_id)
-            print(binary_mask.shape)
             class_id = nyu_im[binary_mask]
             class_id = np.unique(class_id)
-            print(class_id)
             if len(class_id==1):
-                class_ids.append(class_id)
+                class_ids.append(class_id[0])
                 instance_masks.append(binary_mask)
             else:
                 print('Multiple different classes inside one instance mask.')
