@@ -73,7 +73,10 @@ class MapillaryDataset(utils.Dataset):
 
         for i in range(len(config['labels'])):
           classid_to_name[i] = config['labels'][i]['name']
-          color_to_classid.update({config['labels'][i]['color'][0]: {config['labels'][i]['color'][1]: {config['labels'][i]['color'][2]: i}}})
+          # Hier musst du mal gucken welches von beiden klappt. Hab mal beides drinnengelassen.
+          # color_ = (config['labels'][i]['color'][0], config['labels'][i]['color'][1], config['labels'][i]['color'][2])
+          color_ = tuple(config['labels'][i]['color'])
+          color_to_classid.update({color_: i})
                 
         self.color_to_classid = color_to_classid
         print(color_to_classid)
@@ -143,14 +146,13 @@ class MapillaryDataset(utils.Dataset):
             class_color = label_im[binary_mask]
             class_color = np.unique(class_color, axis=0)
             if class_color.shape[0]==1:
-                print('color 1: {}'.format(class_color[0,0])) 
-                print('color 2: {}'.format(class_color[0,1])) 
-                print('color 3: {}'.format(class_color[0,2]))  
-                print('type of 2: {}'.format(type(class_color[0,2])))
-                print('example 1: {}'.format(self.color_to_classid[192][192][192]))
-                class_ids.append(
-                    self.color_to_classid[int(class_color[0,0])][int(class_color[0,1])][int(class_color[0,2])]
-                    )
+                # Hier habe ich ebenfalls eine zweite Option hinzugefügt (bitte entfernen falls es eh funktioniert).
+                # color_ = tuple(int(class_color[0,0]), int(class_color[0,1]), int(class_color[0,2]))
+                color_ = tuple(class_color[0, :3])
+                print('color tuple: {}'.format(color_))
+                print('type of tuple: {}'.format(type(color_)))
+                print('class id: {}'.format(self.color_to_classid[color_]))
+                class_ids.append(self.color_to_classid[color_])
                 instance_masks.append(binary_mask)
             else:
                 print('Multiple different classes inside one instance mask.')
