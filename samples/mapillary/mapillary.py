@@ -69,14 +69,15 @@ class MapillaryDataset(utils.Dataset):
         self.dataset_dir = dataset_dir
 
         color_to_classid = {}
-        class_id_to_name = {}
-        i = 0
-        for label in config['labels']:
-          classid_to_name[i] = label['name']
-          color_to_classid.update({label['color'][0]: {label['color'][1]: {label['color'][2]: i}}})
+        classid_to_name = {}
+
+        for i in range(len(config['labels'])):
+          classid_to_name[i] = config['labels'][i]['name']
+          color_to_classid.update({config['labels'][i]['color'][0]: {config['labels'][i]['color'][1]: {config['labels'][i]['color'][2]: i}}})
                 
         self.color_to_classid = color_to_classid
-        self.class_id_to_name = class_id_to_name
+        print(color_to_classid)
+        self.classid_to_name = classid_to_name
         # Iterate trough all images in subset path
         image_paths = glob.iglob(os.path.join(dataset_dir,'images', '*.*'))
         for image_path in image_paths:
@@ -92,10 +93,7 @@ class MapillaryDataset(utils.Dataset):
               self.add_class("mapillary_vistas", i, classid_to_name[i])
 
           # Add images
-          
-          image_id = tail[0:end-4]
-          print(image_id)
-          print(tail)
+          image_id = tail[0:-4]
           self.add_image(
               "mapillary_vistas", image_id=image_id,
               path=image_path,
@@ -131,11 +129,10 @@ class MapillaryDataset(utils.Dataset):
 
         instance_masks = []
         class_ids = []
-        path = self.image_info[image_id]["path"]
         # Build mask of shape [height, width, instance_count] and list
         # of class IDs that correspond to each channel of the mask.
-        instance_mask_path = os.path.join(self.dataset_dir, 'instances', '{}.png'.format(image_id))
-        nyu_mask_path = os.path.join(self.dataset_dir, 'labels', '{}.png'.format(image_id))
+        instance_mask_path = os.path.join(self.dataset_dir, 'instances', '{}.png'.format(image_info['id']))
+        nyu_mask_path = os.path.join(self.dataset_dir, 'labels', '{}.png'.format(image_info['id']))
         
         instance_im = imageio.imread(instance_mask_path)
         label_im = imageio.imread(nyu_mask_path)
@@ -146,8 +143,14 @@ class MapillaryDataset(utils.Dataset):
             class_color = label_im[binary_mask]
             class_color = np.unique(class_color, axis=0)
             if class_color.shape[0]==1:
+                print('color 1: {}'.format(class_color[0,0])) 
+                print('color 2: {}'.format(class_color[0,1])) 
+                print('color 3: {}'.format(class_color[0,2]))  
+                print('type of 2: {}'.format(type(class_color[0,2])))
+                print('example 1: {}'.format(self.color_to_classid[192][192][192]))
                 class_ids.append(
-                    self.colors_to_classid[class_color[0]][class_color[1]][class_color[2]])
+                    self.color_to_classid[int(class_color[0,0])][int(class_color[0,1])][int(class_color[0,2])]
+                    )
                 instance_masks.append(binary_mask)
             else:
                 print('Multiple different classes inside one instance mask.')
