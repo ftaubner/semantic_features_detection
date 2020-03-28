@@ -13,6 +13,8 @@ import cv2
 import imageio
 import matplotlib.pyplot as plt
 import json
+import time
+
 
 # Root directory of the project
 ROOT_DIR = os.path.abspath("../../")
@@ -73,8 +75,6 @@ class MapillaryDataset(utils.Dataset):
 
         for i in range(len(config['labels'])):
           classid_to_name[i] = config['labels'][i]['name']
-          # Hier musst du mal gucken welches von beiden klappt. Hab mal beides drinnengelassen.
-          # color_ = (config['labels'][i]['color'][0], config['labels'][i]['color'][1], config['labels'][i]['color'][2])
           color_ = tuple(config['labels'][i]['color'])
           color_to_classid.update({color_: i})
                 
@@ -125,6 +125,8 @@ class MapillaryDataset(utils.Dataset):
             one mask per instance.
         class_ids: a 1D array of class IDs of the instance masks.
         """
+        tic = time.perf_counter()
+
         # If not an InteriorNet image, delegate to parent class.
         image_info = self.image_info[image_id]
         if image_info["source"] != "mapillary_vistas":
@@ -146,12 +148,7 @@ class MapillaryDataset(utils.Dataset):
             class_color = label_im[binary_mask]
             class_color = np.unique(class_color, axis=0)
             if class_color.shape[0]==1:
-                # Hier habe ich ebenfalls eine zweite Option hinzugefügt (bitte entfernen falls es eh funktioniert).
-                # color_ = tuple(int(class_color[0,0]), int(class_color[0,1]), int(class_color[0,2]))
                 color_ = tuple(class_color[0, :3])
-                print('color tuple: {}'.format(color_))
-                print('type of tuple: {}'.format(type(color_)))
-                print('class id: {}'.format(self.color_to_classid[color_]))
                 class_ids.append(self.color_to_classid[color_])
                 instance_masks.append(binary_mask)
             else:
@@ -161,6 +158,9 @@ class MapillaryDataset(utils.Dataset):
         if class_ids:
             mask = np.stack(instance_masks, axis=2).astype(np.bool)
             class_ids = np.array(class_ids, dtype=np.int32)
+
+            toc = time.perf_counter()
+            print("Generated mask in {} seconds.".format(toc - tic))
             return mask, class_ids
         else:
             # Call super class to return an empty mask
