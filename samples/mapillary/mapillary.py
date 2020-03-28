@@ -12,6 +12,7 @@ import numpy as np
 import cv2
 import imageio
 import matplotlib.pyplot as plt
+import json
 
 # Root directory of the project
 ROOT_DIR = os.path.abspath("../../")
@@ -44,7 +45,7 @@ class mapvistas(Config):
     IMAGES_PER_GPU = 1
 
     # Number of classes (including background)
-    NUM_CLASSES = 1 + 40  # background + 40 classes
+    NUM_CLASSES = 1 + 66  # background + 40 classes
 
     # Use small images for faster training. Set the limits of the small side
     # the large side, and that determines the image shape.
@@ -52,69 +53,61 @@ class mapvistas(Config):
     IMAGE_MAX_DIM = 640
 
 
-class InteriorDataset(utils.Dataset):
-    
-    
-    def load_vistas(self, dataset_dir, subset, class_ids=None, return_coco=False):
+class MapillaryDataset(utils.Dataset):
+    def load_vistas(self, dataset_dir, subset, class_ids=None):
         """Load a subset of the Mapillary Vistas dataset.
         dataset_dir: The root directory of the Mapillary Vistas dataset.
         subset: What to load (training, testing, validation) subset should be in the file ~/dataset_dir/subset
         class_ids: If provided, only loads images that have the given classes.
         return_coco: If True, returns the COCO object.
         """
+        # Read config.json file 
+        with open("{}/config.json".format(dataset_dir)) as json_file:
+          config = json.load(json_file)
+
         dataset_dir = "{}/{}".format(dataset_dir, subset)
         self.dataset_dir = dataset_dir
 
-        # Read config.json file 
-        coco = COCO("{}/cocolabel.json".format(image_path))
-        head, tail = os.path.split(image_path)
-        
+        color_to_classid = {}
+        class_id_to_name = {}
+        i = 0
+        for label in config['labels']:
+          classid_to_name[i] = label['name']
+          color_to_classid.update({label['color'][2]: {label['color'][1]: {label['color'][1]: i}}})
+                
+        self.color_to_classid = color_to_classid
+        self.class_id_to_name = class_id_to_name
         # Iterate trough all images in subset path
         image_paths = glob.iglob(os.path.join(dataset_dir,'images', '*.*'))
         for image_path in image_paths:
-            
-           
-            if not class_ids:
-                # All classes
-                class_ids = sorted(coco.getCatIds())
-                print(class_ids)
+          head, tail = os.path.split(image_path)
 
-            # All images or a subset?
-            if class_ids:
-                image_ids = []
-                for id in class_ids:
-                    image_ids.extend(list(coco.getImgIds(catIds=[id])))
-                # Remove duplicates
-                image_ids = list(set(image_ids))
-            else:
-                # All images
-                image_ids = list(coco.imgs.keys())
+          if not class_ids:
+              # All classes
+              class_ids = classid_to_name.keys()
+              print(class_ids)
 
-            # Add classes
-            for i in class_ids:
-                self.add_class("interior", i, coco.loadCats(i)[0]["name"])
+          # Add classes
+          for i in class_ids:
+              self.add_class("mapillary_vistas", i, classid_to_name[i])
 
-            # Add images
-            for i in image_ids:
-                id = tail + '_id' + str(i)
-                self.add_image(
-                    "interior", image_id=id,
-                    image_sub_id = i,
-                    path=os.path.join(image_dir, coco.imgs[i]['file_name']),
-                    width=coco.imgs[i]["width"],
-                    height=coco.imgs[i]["height"],
-                    annotations=coco.loadAnns(coco.getAnnIds(
-                        imgIds=[i], catIds=class_ids, iscrowd=None)),
-                    subfolder=tail)
-        if return_coco:
-            return coco
+          # Add images
+          
+          image_id = tail[0:end-4]
+          print(image_id)
+          print(tail)
+          self.add_image(
+              "mapillary_vistas", image_id=image_id,
+              path=image_path,
+              )
+
 
 
     def image_reference(self, image_id):
         """Return the path of the image"""
         
         info = self.image_info[image_id]
-        if info["source"] == "interior":
+        if info["source"] == "mapillary_vistas":
             return info["path"]
         else:
             super(self.__class__, self).image_reference(image_id)
