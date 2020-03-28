@@ -133,7 +133,7 @@ class InteriorDataset(utils.Dataset):
         """
         # If not an InteriorNet image, delegate to parent class.
         image_info = self.image_info[image_id]
-        if image_info["source"] != "interior":
+        if image_info["source"] != "mapillary_vistas":
             return super(self.__class__, self).load_mask(image_id)
 
         instance_masks = []
@@ -141,21 +141,20 @@ class InteriorDataset(utils.Dataset):
         path = self.image_info[image_id]["path"]
         # Build mask of shape [height, width, instance_count] and list
         # of class IDs that correspond to each channel of the mask.
-        instance_mask_path = os.path.join(self.dataset_dir, self.image_info[image_id]["subfolder"], 
-                                   'label0/data',
-                                   str(self.image_info[image_id]["image_sub_id"])+'_instance.png')
-        nyu_mask_path = os.path.join(self.dataset_dir, self.image_info[image_id]["subfolder"], 
-                                   'label0/data',
-                                   str(self.image_info[image_id]["image_sub_id"])+'_nyu.png')
+        instance_mask_path = os.path.join(self.dataset_dir, 'instances', '{}.png'.format(image_id))
+        nyu_mask_path = os.path.join(self.dataset_dir, 'labels', '{}.png'.format(image_id))
+        
         instance_im = imageio.imread(instance_mask_path)
-        nyu_im = imageio.imread(nyu_mask_path)
+        label_im = imageio.imread(nyu_mask_path)
+        
         instance_ids = np.unique(instance_im)
         for instance_id in instance_ids:
             binary_mask = np.where(instance_im == instance_id , True, False)
-            class_id = nyu_im[binary_mask]
-            class_id = np.unique(class_id)
-            if len(class_id==1):
-                class_ids.append(class_id[0])
+            class_color = label_im[binary_mask]
+            class_color = np.unique(class_color, axis=0)
+            if class_color.shape[0]==1:
+                class_ids.append(
+                    self.colors_to_class_id[class_color[0]][class_color[1]][class_color[2]])
                 instance_masks.append(binary_mask)
             else:
                 print('Multiple different classes inside one instance mask.')
@@ -168,6 +167,7 @@ class InteriorDataset(utils.Dataset):
         else:
             # Call super class to return an empty mask
             return super(CocoDataset, self).load_mask(image_id)
+        
 
     
         
