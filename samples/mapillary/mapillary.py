@@ -147,7 +147,7 @@ class MapillaryDataset(utils.Dataset):
             class_color = np.unique(class_color, axis=0)
             if class_color.shape[0]==1:
                 class_ids.append(
-                    self.colors_to_class_id[class_color[0]][class_color[1]][class_color[2]])
+                    self.colors_to_classid[class_color[0]][class_color[1]][class_color[2]])
                 instance_masks.append(binary_mask)
             else:
                 print('Multiple different classes inside one instance mask.')
