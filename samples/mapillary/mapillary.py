@@ -73,7 +73,7 @@ class MapillaryDataset(utils.Dataset):
         i = 0
         for label in config['labels']:
           classid_to_name[i] = label['name']
-          color_to_classid.update({label['color'][2]: {label['color'][1]: {label['color'][1]: i}}})
+          color_to_classid.update({label['color'][0]: {label['color'][1]: {label['color'][2]: i}}})
                 
         self.color_to_classid = color_to_classid
         self.class_id_to_name = class_id_to_name
