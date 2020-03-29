@@ -235,7 +235,7 @@ if __name__ == '__main__':
 
     # Load weights
     print("Loading weights ", model_path)
-    odel.load_weights(COCO_MODEL_PATH, by_name=True,
+    model.load_weights(COCO_MODEL_PATH, by_name=True,
                        exclude=["mrcnn_class_logits", "mrcnn_bbox_fc", 
                                 "mrcnn_bbox", "mrcnn_mask"])
 
