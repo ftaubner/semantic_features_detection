@@ -28,6 +28,7 @@ from pycocotools import mask as maskUtils
 sys.path.append(ROOT_DIR)  # To find local version of the library
 from mrcnn.config import Config
 from mrcnn import utils
+import mrcnn.model as modellib
 
 # Path to trained weights file
 COCO_MODEL_PATH = os.path.join(ROOT_DIR, "mask_rcnn_coco.h5")
@@ -47,7 +48,7 @@ class mapvistas(Config):
     IMAGES_PER_GPU = 1
 
     # Number of classes (including background)
-    NUM_CLASSES = 1 + 66  # background + 40 classes
+    NUM_CLASSES = 1 + 65  # background + 40 classes
 
     # Use small images for faster training. Set the limits of the small side
     # the large side, and that determines the image shape.
@@ -125,7 +126,6 @@ class MapillaryDataset(utils.Dataset):
             one mask per instance.
         class_ids: a 1D array of class IDs of the instance masks.
         """
-        tic = time.perf_counter()
 
         # If not an InteriorNet image, delegate to parent class.
         image_info = self.image_info[image_id]
@@ -141,31 +141,21 @@ class MapillaryDataset(utils.Dataset):
         
         instance_im = imageio.imread(instance_mask_path)
         label_im = imageio.imread(nyu_mask_path)
-
-        toc = time.perf_counter()
-        print("Loading instances and label image took {} seconds. From path {}.".format(toc-tic, instance_mask_path))
-        tic = toc
         
         instance_ids = np.unique(instance_im)
         for instance_id in instance_ids:
             binary_mask = np.where(instance_im == instance_id , True, False)
-            class_color = label_im[binary_mask][0, :3]
-
+            class_color = label_im[binary_mask][0,:3]
             color_ = tuple(class_color)
             class_ids.append(self.color_to_classid[color_])
             instance_masks.append(binary_mask)
 
-        toc = time.perf_counter()
-        print("Creating instance masks took {} seconds.".format(toc-tic))
-        tic = toc
 
         # Pack instance masks into an array
         if class_ids:
             mask = np.stack(instance_masks, axis=2).astype(np.bool)
             class_ids = np.array(class_ids, dtype=np.int32)
 
-            toc = time.perf_counter()
-            print("Stacking the instance masks took {} seconds. This mask contains {} instances.".format(toc - tic, len(class_ids)))
             return mask, class_ids
         else:
             # Call super class to return an empty mask
@@ -174,7 +164,7 @@ class MapillaryDataset(utils.Dataset):
 
     
         
-'''
+
 ############################################################
 #  Training
 ############################################################
@@ -185,18 +175,18 @@ if __name__ == '__main__':
 
     # Parse command line arguments
     parser = argparse.ArgumentParser(
-        description='Train Mask R-CNN on InteriorNet.')
+        description='Train Mask R-CNN on Mapillary Vistas.')
     parser.add_argument("command",
                         metavar="<command>",
-                        help="'train' or 'evaluate' on InteriorNet")
+                        help="'train' or 'evaluate' on Mapillary Vistas")
     parser.add_argument('--dataset', required=True,
-                        metavar="/path/to/intriornet/",
-                        help='Directory of the InterioNet dataset')
+                        metavar="/path/to/mapillary_vistas/",
+                        help='Directory of the Mapillary Vistas dataset')
     parser.add_argument('--model', required=True,
                         metavar="/path/to/weights.h5",
                         help="Path to weights .h5 file")
-    parser.add_argument('--logs', required=False,
-                        default=DEFAULT_LOGS_DIR,
+    parser.add_argument('--logs', required=True,
+                        default='/logs',
                         metavar="/path/to/logs/",
                         help='Logs and checkpoints directory (default=logs/)')
     parser.add_argument('--limit', required=False,
@@ -212,9 +202,9 @@ if __name__ == '__main__':
 
     # Configurations
     if args.command == "train":
-        config = InteriorNetConfig()
+        config = mapvistas()
     else:
-        class InferenceConfig(InteriorNetConfig):
+        class mapvistas(mapvistas):
             # Set batch size to 1 since we'll be running inference on
             # one image at a time. Batch size = GPU_COUNT * IMAGES_PER_GPU
             GPU_COUNT = 1
@@ -245,22 +235,21 @@ if __name__ == '__main__':
 
     # Load weights
     print("Loading weights ", model_path)
-    model.load_weights(model_path, by_name=True)
+    model.load_weights(COCO_MODEL_PATH, by_name=True,
+                       exclude=["mrcnn_class_logits", "mrcnn_bbox_fc", 
+                                "mrcnn_bbox", "mrcnn_mask"])
 
     # Train or evaluate
     if args.command == "train":
         # Training dataset. Use the training set and 35K from the
         # validation set, as as in the Mask RCNN paper.
-        dataset_train = InteriorDataset()
-        dataset_train.load_coco(args.dataset, "train", year=args.year, auto_download=args.download)
-        if args.year in '2014':
-            dataset_train.load_coco(args.dataset, "valminusminival", year=args.year, auto_download=args.download)
+        dataset_train = MapillaryDataset()
+        dataset_train.load_vistas(args.dataset, "training")
         dataset_train.prepare()
 
         # Validation dataset
-        dataset_val = CocoDataset()
-        val_type = "val" if args.year in '2017' else "minival"
-        dataset_val.load_coco(args.dataset, val_type, year=args.year, auto_download=args.download)
+        dataset_val = MapillaryDataset()
+        dataset_val.load_vistas(dataset_dir=VAL_DIR, subset='validation')
         dataset_val.prepare()
 
         # Image Augmentation
@@ -295,16 +284,3 @@ if __name__ == '__main__':
                     layers='all',
                     augmentation=augmentation)
 
-    elif args.command == "evaluate":
-        # Validation dataset
-        dataset_val = CocoDataset()
-        val_type = "val" if args.year in '2017' else "minival"
-        coco = dataset_val.load_coco(args.dataset, val_type, year=args.year, return_coco=True, auto_download=args.download)
-        dataset_val.prepare()
-        print("Running COCO evaluation on {} images.".format(args.limit))
-        evaluate_coco(model, dataset_val, coco, "bbox", limit=int(args.limit))
-    else:
-        print("'{}' is not recognized. "
-              "Use 'train' or 'evaluate'".format(args.command))
-
-'''
