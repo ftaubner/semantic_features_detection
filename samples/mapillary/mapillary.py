@@ -28,6 +28,7 @@ from pycocotools import mask as maskUtils
 sys.path.append(ROOT_DIR)  # To find local version of the library
 from mrcnn.config import Config
 from mrcnn import utils
+import mrcnn.model as modellib
 
 # Path to trained weights file
 COCO_MODEL_PATH = os.path.join(ROOT_DIR, "mask_rcnn_coco.h5")
@@ -280,17 +281,4 @@ if __name__ == '__main__':
                     epochs=160,
                     layers='all',
                     augmentation=augmentation)
-"""
-    elif args.command == "evaluate":
-        # Validation dataset
-        dataset_val = MapillaryDataset()
-        val_type = "val" if args.year in '2017' else "minival"
-        coco = dataset_val.load_coco(args.dataset, val_type, year=args.year, return_coco=True, auto_download=args.download)
-        dataset_val.prepare()
-        print("Running COCO evaluation on {} images.".format(args.limit))
-        evaluate_coco(model, dataset_val, coco, "bbox", limit=int(args.limit))
-    else:
-        print("'{}' is not recognized. "
-              "Use 'train' or 'evaluate'".format(args.command))
 
-'''
