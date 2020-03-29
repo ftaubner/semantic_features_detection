@@ -141,6 +141,10 @@ class MapillaryDataset(utils.Dataset):
         
         instance_im = imageio.imread(instance_mask_path)
         label_im = imageio.imread(nyu_mask_path)
+
+        toc = time.perf_counter()
+        print("Loading instances and label image took {} seconds.".format(toc-tic))
+        tic = toc
         
         instance_ids = np.unique(instance_im)
         for instance_id in instance_ids:
@@ -154,13 +158,17 @@ class MapillaryDataset(utils.Dataset):
             else:
                 print('Multiple different classes inside one instance mask.')
 
+        toc = time.perf_counter()
+        print("Creating instance masks took {} seconds.".format(toc-tic))
+        tic = toc
+
         # Pack instance masks into an array
         if class_ids:
             mask = np.stack(instance_masks, axis=2).astype(np.bool)
             class_ids = np.array(class_ids, dtype=np.int32)
 
             toc = time.perf_counter()
-            print("Generated mask in {} seconds.".format(toc - tic))
+            print("Stacking the instance masks took {} seconds. This mask contains {} instances.".format(toc - tic, len(class_ids)))
             return mask, class_ids
         else:
             # Call super class to return an empty mask
