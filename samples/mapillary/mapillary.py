@@ -143,20 +143,17 @@ class MapillaryDataset(utils.Dataset):
         label_im = imageio.imread(nyu_mask_path)
 
         toc = time.perf_counter()
-        print("Loading instances and label image took {} seconds.".format(toc-tic))
+        print("Loading instances and label image took {} seconds. From path {}.".format(toc-tic, instance_mask_path))
         tic = toc
         
         instance_ids = np.unique(instance_im)
         for instance_id in instance_ids:
             binary_mask = np.where(instance_im == instance_id , True, False)
-            class_color = label_im[binary_mask]
-            class_color = np.unique(class_color, axis=0)
-            if class_color.shape[0]==1:
-                color_ = tuple(class_color[0, :3])
-                class_ids.append(self.color_to_classid[color_])
-                instance_masks.append(binary_mask)
-            else:
-                print('Multiple different classes inside one instance mask.')
+            class_color = label_im[binary_mask][0, :3]
+
+            color_ = tuple(class_color)
+            class_ids.append(self.color_to_classid[color_])
+            instance_masks.append(binary_mask)
 
         toc = time.perf_counter()
         print("Creating instance masks took {} seconds.".format(toc-tic))
