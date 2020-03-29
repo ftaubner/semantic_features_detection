@@ -186,7 +186,7 @@ if __name__ == '__main__':
                         metavar="/path/to/weights.h5",
                         help="Path to weights .h5 file")
     parser.add_argument('--logs', required=True,
-                        default=DEFAULT_LOGS_DIR,
+                        default='/logs',
                         metavar="/path/to/logs/",
                         help='Logs and checkpoints directory (default=logs/)')
     parser.add_argument('--limit', required=False,
