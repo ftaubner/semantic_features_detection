@@ -173,7 +173,9 @@ class MapillaryDataset(utils.Dataset):
         # Pack instance masks into an array
         if class_ids:
             mask = np.stack(instance_masks, axis=2).astype(np.bool)
+            print(mask.shape)
             class_ids = np.array(class_ids, dtype=np.int32)
+            print("Len class ids: {}".format(class_ids.shape))
 
             toc = time.perf_counter()
             print("Time to stack masks instances: {}".format(toc-tic))
@@ -228,7 +230,9 @@ if __name__ == '__main__':
     # Configurations
     if args.command == "train":
         class TrainConfig(mapvistas):
-          NUM_CLASSES = len(selected_classes)
+            NUM_CLASSES = len(selected_classes) + 1
+            STEPS_PER_EPOCH = 20
+            VALIDATION_STEPS = 4
         config = TrainConfig()
     else:
         class mapvistas(mapvistas):
@@ -276,7 +280,7 @@ if __name__ == '__main__':
 
         # Validation dataset
         dataset_val = MapillaryDataset()
-        dataset_val.load_vistas(dataset_dir=VAL_DIR, subset='validation', class_ids=selected_classes)
+        dataset_val.load_vistas(args.dataset, subset='validation', class_ids=selected_classes)
         dataset_val.prepare()
 
         # Image Augmentation
