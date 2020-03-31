@@ -191,7 +191,6 @@ class MapillaryDataset(utils.Dataset):
 
 
 if __name__ == '__main__':
-    print("Dies sollte nicht geprintet werden vo Notebook")
     import argparse
 
     # Parse command line arguments
@@ -209,7 +208,7 @@ if __name__ == '__main__':
     parser.add_argument('--logs', required=True,
                         default='/logs',
                         metavar="/path/to/logs/",
-                        help='Logs and checkpoints directory (default=logs/)')
+                        help='Logs and checkpoints directory (default=logs/)')                
     parser.add_argument('--limit', required=False,
                         default=500,
                         metavar="<image count>",
@@ -221,9 +220,14 @@ if __name__ == '__main__':
     print("Dataset: ", args.dataset)
     print("Logs: ", args.logs)
 
+    # Selected classes
+    selected_classes = [33, 35, 36, 37, 38, 39, 40, 41, 42, 44, 45, 46, 47, 48, 49, 50, 51]
+
     # Configurations
     if args.command == "train":
-        config = mapvistas()
+        class TrainConfig(mapvistas):
+          NUM_CLASSES = len(selected_classes)
+        config = TrainConfig()
     else:
         class mapvistas(mapvistas):
             # Set batch size to 1 since we'll be running inference on
@@ -265,12 +269,12 @@ if __name__ == '__main__':
         # Training dataset. Use the training set and 35K from the
         # validation set, as as in the Mask RCNN paper.
         dataset_train = MapillaryDataset()
-        dataset_train.load_vistas(args.dataset, "training")
+        dataset_train.load_vistas(args.dataset, "training", class_ids=selected_classes)
         dataset_train.prepare()
 
         # Validation dataset
         dataset_val = MapillaryDataset()
-        dataset_val.load_vistas(dataset_dir=VAL_DIR, subset='validation')
+        dataset_val.load_vistas(dataset_dir=VAL_DIR, subset='validation', class_ids=selected_classes)
         dataset_val.prepare()
 
         # Image Augmentation
