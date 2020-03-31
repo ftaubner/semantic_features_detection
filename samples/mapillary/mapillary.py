@@ -14,6 +14,7 @@ import imageio
 import matplotlib.pyplot as plt
 import json
 import time
+import imgaug
 
 
 # Root directory of the project
@@ -48,7 +49,7 @@ class mapvistas(Config):
     IMAGES_PER_GPU = 1
 
     # Number of classes (including background)
-    NUM_CLASSES = 1 + 65  # background + 40 classes
+    NUM_CLASSES = 1 + 65  # background + 65 classes
 
     # Use small images for faster training. Set the limits of the small side
     # the large side, and that determines the image shape.
@@ -72,15 +73,20 @@ class MapillaryDataset(utils.Dataset):
         self.dataset_dir = dataset_dir
 
         color_to_classid = {}
-        classid_to_name = {}
+        classid_to_name = []
 
-        for i in range(len(config['labels'])):
-          classid_to_name[i] = config['labels'][i]['name']
-          color_ = tuple(config['labels'][i]['color'])
-          color_to_classid.update({color_: i})
-                
+        for i in range(len(config['labels'])-1):
+            classid_to_name.append(config['labels'][i]['readable'])
+            color_ = tuple(config['labels'][i]['color'])
+            color_to_classid.update({color_: i+1})
+        
+        # As the last entry should be the first
+        classid_to_name.insert(0, config['labels'][65]['readable'])
+        color_ = tuple(config['labels'][65]['color'])
+        color_to_classid.update({color_: 0})
+
         self.color_to_classid = color_to_classid
-        print(color_to_classid)
+        print(classid_to_name)
         self.classid_to_name = classid_to_name
         # Iterate trough all images in subset path
         image_paths = glob.iglob(os.path.join(dataset_dir,'images', '*.*'))
@@ -89,13 +95,15 @@ class MapillaryDataset(utils.Dataset):
 
           if not class_ids:
               # All classes
-              class_ids = classid_to_name.keys()
-              print(class_ids)
+              class_ids = list(range(len(classid_to_name)))
 
           # Add classes
           for i in class_ids:
               self.add_class("mapillary_vistas", i, classid_to_name[i])
 
+          # Add class_ids in an easy accessible way
+          self.class_ids = class_ids
+          print(class_ids)
           # Add images
           image_id = tail[0:-4]
           self.add_image(
@@ -138,23 +146,35 @@ class MapillaryDataset(utils.Dataset):
         # of class IDs that correspond to each channel of the mask.
         instance_mask_path = os.path.join(self.dataset_dir, 'instances', '{}.png'.format(image_info['id']))
         nyu_mask_path = os.path.join(self.dataset_dir, 'labels', '{}.png'.format(image_info['id']))
-        
+
+        tic = time.perf_counter()
+
         instance_im = imageio.imread(instance_mask_path)
         label_im = imageio.imread(nyu_mask_path)
         
+        toc = time.perf_counter()
+        print("Time to load images: {}".format(toc-tic))
+        tic = toc
+
         instance_ids = np.unique(instance_im)
         for instance_id in instance_ids:
             binary_mask = np.where(instance_im == instance_id , True, False)
             class_color = label_im[binary_mask][0,:3]
             color_ = tuple(class_color)
-            class_ids.append(self.color_to_classid[color_])
-            instance_masks.append(binary_mask)
-
-
+            class_id = self.color_to_classid[color_]
+            if class_id in self.class_ids:
+                class_ids.append(class_id)
+                instance_masks.append(binary_mask)
+        toc = time.perf_counter()
+        print("Time to add all instances: {}".format(toc-tic))
+        tic = toc
         # Pack instance masks into an array
         if class_ids:
             mask = np.stack(instance_masks, axis=2).astype(np.bool)
             class_ids = np.array(class_ids, dtype=np.int32)
+
+            toc = time.perf_counter()
+            print("Time to stack masks instances: {}".format(toc-tic))
 
             return mask, class_ids
         else:
@@ -171,6 +191,7 @@ class MapillaryDataset(utils.Dataset):
 
 
 if __name__ == '__main__':
+    print("Dies sollte nicht geprintet werden vo Notebook")
     import argparse
 
     # Parse command line arguments
