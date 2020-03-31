@@ -155,30 +155,31 @@ class MapillaryDataset(utils.Dataset):
         label_im = imageio.imread(nyu_mask_path)
         
         toc = time.perf_counter()
-        print("Time to load images: {}".format(toc-tic))
+        #print("Time to load images: {}".format(toc-tic))
         tic = toc
 
         instance_ids = np.unique(instance_im)
         for instance_id in instance_ids:
             binary_mask = np.where(instance_im == instance_id , True, False)
-            class_color = label_im[binary_mask][0,:3]
+            first_where_index = np.unravel_index(np.argmax(binary_mask), binary_mask.shape)
+            class_color = label_im[first_where_index[0], first_where_index[1], :3]
             color_ = tuple(class_color)
             class_id = self.color_to_classid[color_]
             if class_id in self.class_ids:
                 class_ids.append(class_id)
                 instance_masks.append(binary_mask)
         toc = time.perf_counter()
-        print("Time to add all instances: {}".format(toc-tic))
+        #print("Time to add all instances: {}".format(toc-tic))
         tic = toc
         # Pack instance masks into an array
         if class_ids:
             mask = np.stack(instance_masks, axis=2).astype(np.bool)
-            print(mask.shape)
+            #print(mask.shape)
             class_ids = np.array(class_ids, dtype=np.int32)
-            print("Len class ids: {}".format(class_ids.shape))
+            #print("Len class ids: {}".format(class_ids.shape))
 
             toc = time.perf_counter()
-            print("Time to stack masks instances: {}".format(toc-tic))
+            #print("Time to stack masks instances: {}".format(toc-tic))
 
             return mask, class_ids
         else:
