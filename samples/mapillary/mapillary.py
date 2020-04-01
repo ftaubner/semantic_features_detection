@@ -228,7 +228,10 @@ if __name__ == '__main__':
     if args.command == "train":
         class TrainConfig(mapvistas):
             NUM_CLASSES = len(selected_classes) + 1
-            STEPS_PER_EPOCH = 20
+            STEPS_PER_EPOCH = 20000
+            VALIDATION_STEPS = 2000
+            IMAGE_MAX_DIM = 768
+            IMAGE_MIN_DIM = 768
             VALIDATION_STEPS = 4
         config = TrainConfig()
     else:
