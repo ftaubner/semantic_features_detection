@@ -138,56 +138,54 @@ class MapillaryDataset(utils.Dataset):
             one mask per instance.
         class_ids: a 1D array of class IDs of the instance masks.
         """
-        #print("self.class_ids: {}".format(self.class_number))
 
+        #tic = time.perf_counter()
+        
         # If not an InteriorNet image, delegate to parent class.
         image_info = self.image_info[image_id]
         if image_info["source"] != "mapillary_vistas":
             return super(self.__class__, self).load_mask(image_id)
-
-        instance_masks = []
-        class_ids = []
         # Build mask of shape [height, width, instance_count] and list
         # of class IDs that correspond to each channel of the mask.
-        instance_mask_path = os.path.join(self.dataset_dir, 'instances', '{}.png'.format(image_info['id']))
-        nyu_mask_path = os.path.join(self.dataset_dir, 'labels', '{}.png'.format(image_info['id']))
-
-        tic = time.perf_counter()
+        instance_mask_path = os.path.join(self.dataset_dir, 
+                                          'instances', '{}.png'.format(image_info['id']))
+        instance_to_class_color_path = os.path.join(self.dataset_dir, 
+                                                    'instances', '{}..txt'.format(image_info['id']))
 
         instance_im = imageio.imread(instance_mask_path)
-        label_im = imageio.imread(nyu_mask_path)
-        
-        toc = time.perf_counter()
-        #print("Time to load images: {}".format(toc-tic))
-        tic = toc
+        instance_im = cv2.resize(instance_im, (768, 768), fx=0, fy=0, interpolation=cv2.INTER_NEAREST)
 
-        instance_ids = np.unique(instance_im)
-        for instance_id in instance_ids:
-            binary_mask = np.where(instance_im == instance_id , True, False)
-            first_where_index = np.unravel_index(np.argmax(binary_mask), binary_mask.shape)
-            class_color = label_im[first_where_index[0], first_where_index[1], :3]
-            color_ = tuple(class_color)
-            class_id = self.color_to_classid[color_]
-            if class_id in self.class_number:
-                class_ids.append(class_id)
-                instance_masks.append(binary_mask)
-        #toc = time.perf_counter()
-        #print("Time to add all instances: {}".format(toc-tic))
-        tic = toc
+        class_ids = []
+        instance_ids = []
+        
+        with open(instance_to_class_color_path) as f:
+            lines = f.readlines()
+            for line in lines:
+                values = line.split(" ")
+                color_ = (int(values[1]), int(values[2]), int(values[3]))
+                class_id = self.color_to_classid[color_]
+                if class_id in self.class_number:
+                    class_ids.append(self.class_number.index(class_id) + 1)
+                    instance_ids.append(int(values[0]))
+        
+        instance_masks = []
+        
+        for i in range(len(instance_ids)):
+            instance_masks.append(np.where(instance_im == instance_ids[i], True, False))
+            
         # Pack instance masks into an array
         if class_ids:
-            mask = np.stack(instance_masks, axis=2).astype(np.bool)
-            #print(mask.shape)
             class_ids = np.array(class_ids, dtype=np.int32)
-            #print("Len class ids: {}".format(class_ids.shape))
+            tic = time.perf_counter()
+            instance_mask = np.stack(instance_masks, axis=2)
+            
+            #toc = time.perf_counter()
+            #print("Time to create mask: {}".format(toc-tic))
 
-            toc = time.perf_counter()
-            #print("Time to stack masks instances: {}".format(toc-tic))
-
-            return mask, class_ids
+            return instance_mask, class_ids
         else:
             # Call super class to return an empty mask
-            return super(CocoDataset, self).load_mask(image_id)
+            return super(MapillaryDataset, self).load_mask(image_id)
         
 
     
@@ -236,15 +234,18 @@ if __name__ == '__main__':
     if args.command == "train":
         class TrainConfig(mapvistas):
             NUM_CLASSES = len(selected_classes) + 1
-            STEPS_PER_EPOCH = 20
-            VALIDATION_STEPS = 4
+            STEPS_PER_EPOCH = 20000
+            VALIDATION_STEPS = 2000
+            IMAGE_MAX_DIM = 768
+            IMAGE_MIN_DIM = 768
+            IMAGES_PER_GPU = 1
         config = TrainConfig()
     else:
         class mapvistas(mapvistas):
             # Set batch size to 1 since we'll be running inference on
             # one image at a time. Batch size = GPU_COUNT * IMAGES_PER_GPU
             GPU_COUNT = 1
-            IMAGES_PER_GPU = 1
+            IMAGES_PER_GPU = 2
             DETECTION_MIN_CONFIDENCE = 0
         config = InferenceConfig()
     config.display()
@@ -300,7 +301,7 @@ if __name__ == '__main__':
                     learning_rate=config.LEARNING_RATE,
                     epochs=40,
                     layers='heads',
-                    augmentation=augmentation)
+                    augmentation=None)
 
         # Training - Stage 2
         # Finetune layers from ResNet stage 4 and up
