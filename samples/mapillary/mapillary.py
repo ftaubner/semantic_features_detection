@@ -14,6 +14,7 @@ import imageio
 import matplotlib.pyplot as plt
 import json
 import time
+import imgaug
 
 
 # Root directory of the project
@@ -32,6 +33,8 @@ import mrcnn.model as modellib
 
 # Path to trained weights file
 COCO_MODEL_PATH = os.path.join(ROOT_DIR, "mask_rcnn_coco.h5")
+if not os.path.exists(COCO_MODEL_PATH):
+    utils.download_trained_weights(COCO_MODEL_PATH)
 
 
 class mapvistas(Config):
@@ -48,7 +51,7 @@ class mapvistas(Config):
     IMAGES_PER_GPU = 1
 
     # Number of classes (including background)
-    NUM_CLASSES = 1 + 65  # background + 40 classes
+    NUM_CLASSES = 1 + 65  # background + 65 classes
 
     # Use small images for faster training. Set the limits of the small side
     # the large side, and that determines the image shape.
@@ -71,30 +74,45 @@ class MapillaryDataset(utils.Dataset):
         dataset_dir = "{}/{}".format(dataset_dir, subset)
         self.dataset_dir = dataset_dir
 
-        color_to_classid = {}
-        classid_to_name = {}
+        color_to_classid = {(0, 0, 0): 0}
+        classid_to_name = ['BG']
 
-        for i in range(len(config['labels'])):
-          classid_to_name[i] = config['labels'][i]['name']
-          color_ = tuple(config['labels'][i]['color'])
-          color_to_classid.update({color_: i})
-                
+        if not class_ids:
+            # All classes
+            class_ids = list(range(1, len(classid_to_name)))
+
+        for i in range(len(config['labels'])-1):
+          if i+1 in class_ids:
+              classid_to_name.append(config['labels'][i]['readable'])
+              color_ = tuple(config['labels'][i]['color'])
+              color_to_classid.update({color_: class_ids.index(i+1)})
+          else:
+              color_ = tuple(config['labels'][i]['color'])
+              color_to_classid.update({color_: 0})
+        
+        # As the last entry should be the first
+        #classid_to_name.insert(0, config['labels'][65]['readable'])
+        #color_ = tuple(config['labels'][65]['color'])
+        #color_to_classid.update({color_: 0})
+
         self.color_to_classid = color_to_classid
-        print(color_to_classid)
         self.classid_to_name = classid_to_name
+        print(color_to_classid)
+        print(classid_to_name)
+        
+        # Add classes
+        for i in range(1, len(classid_to_name)):
+            self.add_class("mapillary_vistas", i, classid_to_name[i])
+
+        # Add class_ids in an easy accessible way
+        self.class_number = class_ids
+        print(self.class_number)
+
+
         # Iterate trough all images in subset path
         image_paths = glob.iglob(os.path.join(dataset_dir,'images', '*.*'))
         for image_path in image_paths:
           head, tail = os.path.split(image_path)
-
-          if not class_ids:
-              # All classes
-              class_ids = classid_to_name.keys()
-              print(class_ids)
-
-          # Add classes
-          for i in class_ids:
-              self.add_class("mapillary_vistas", i, classid_to_name[i])
 
           # Add images
           image_id = tail[0:-4]
@@ -126,6 +144,7 @@ class MapillaryDataset(utils.Dataset):
             one mask per instance.
         class_ids: a 1D array of class IDs of the instance masks.
         """
+        #print("self.class_ids: {}".format(self.class_number))
 
         # If not an InteriorNet image, delegate to parent class.
         image_info = self.image_info[image_id]
@@ -138,23 +157,38 @@ class MapillaryDataset(utils.Dataset):
         # of class IDs that correspond to each channel of the mask.
         instance_mask_path = os.path.join(self.dataset_dir, 'instances', '{}.png'.format(image_info['id']))
         nyu_mask_path = os.path.join(self.dataset_dir, 'labels', '{}.png'.format(image_info['id']))
-        
+
+        tic = time.perf_counter()
+
         instance_im = imageio.imread(instance_mask_path)
         label_im = imageio.imread(nyu_mask_path)
         
+        toc = time.perf_counter()
+        #print("Time to load images: {}".format(toc-tic))
+        tic = toc
+
         instance_ids = np.unique(instance_im)
         for instance_id in instance_ids:
             binary_mask = np.where(instance_im == instance_id , True, False)
-            class_color = label_im[binary_mask][0,:3]
+            first_where_index = np.unravel_index(np.argmax(binary_mask), binary_mask.shape)
+            class_color = label_im[first_where_index[0], first_where_index[1], :3]
             color_ = tuple(class_color)
-            class_ids.append(self.color_to_classid[color_])
-            instance_masks.append(binary_mask)
-
-
+            class_id = self.color_to_classid[color_]
+            if class_id !=0:
+                class_ids.append(class_id)
+                instance_masks.append(binary_mask)
+        #toc = time.perf_counter()
+        #print("Time to add all instances: {}".format(toc-tic))
+        tic = toc
         # Pack instance masks into an array
         if class_ids:
             mask = np.stack(instance_masks, axis=2).astype(np.bool)
+            #print(mask.shape)
             class_ids = np.array(class_ids, dtype=np.int32)
+            #print("Len class ids: {}".format(class_ids.shape))
+
+            toc = time.perf_counter()
+            #print("Time to stack masks instances: {}".format(toc-tic))
 
             return mask, class_ids
         else:
@@ -188,7 +222,7 @@ if __name__ == '__main__':
     parser.add_argument('--logs', required=True,
                         default='/logs',
                         metavar="/path/to/logs/",
-                        help='Logs and checkpoints directory (default=logs/)')
+                        help='Logs and checkpoints directory (default=logs/)')                
     parser.add_argument('--limit', required=False,
                         default=500,
                         metavar="<image count>",
@@ -200,9 +234,17 @@ if __name__ == '__main__':
     print("Dataset: ", args.dataset)
     print("Logs: ", args.logs)
 
+    # Selected classes
+    selected_classes = selected_classes = [34, 36, 37, 38, 39, 40, 41, 42, 43, 45, 46, 47, 48, 49, 50, 51, 52]
+
+
     # Configurations
     if args.command == "train":
-        config = mapvistas()
+        class TrainConfig(mapvistas):
+            NUM_CLASSES = len(selected_classes) + 1
+            STEPS_PER_EPOCH = 20
+            VALIDATION_STEPS = 4
+        config = TrainConfig()
     else:
         class mapvistas(mapvistas):
             # Set batch size to 1 since we'll be running inference on
@@ -244,17 +286,17 @@ if __name__ == '__main__':
         # Training dataset. Use the training set and 35K from the
         # validation set, as as in the Mask RCNN paper.
         dataset_train = MapillaryDataset()
-        dataset_train.load_vistas(args.dataset, "training")
+        dataset_train.load_vistas(args.dataset, "training", class_ids=selected_classes)
         dataset_train.prepare()
 
         # Validation dataset
         dataset_val = MapillaryDataset()
-        dataset_val.load_vistas(dataset_dir=VAL_DIR, subset='validation')
+        dataset_val.load_vistas(args.dataset, subset='validation', class_ids=selected_classes)
         dataset_val.prepare()
 
         # Image Augmentation
         # Right/Left flip 50% of the time
-        augmentation = imgaug.augmenters.Fliplr(0.5)
+        #augmentation = imgaug.augmenters.Fliplr(0.5)
 
         # *** This training schedule is an example. Update to your needs ***
 
@@ -263,8 +305,7 @@ if __name__ == '__main__':
         model.train(dataset_train, dataset_val,
                     learning_rate=config.LEARNING_RATE,
                     epochs=40,
-                    layers='heads',
-                    augmentation=augmentation)
+                    layers='heads')
 
         # Training - Stage 2
         # Finetune layers from ResNet stage 4 and up
