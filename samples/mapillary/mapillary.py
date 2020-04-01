@@ -88,24 +88,26 @@ class MapillaryDataset(utils.Dataset):
         color_to_classid.update({color_: 0})
 
         self.color_to_classid = color_to_classid
-        print(classid_to_name)
         self.classid_to_name = classid_to_name
+
+        if not class_ids:
+            # All classes
+            class_ids = list(range(1, len(classid_to_name)))
+
+        # Add classes
+        for i in class_ids:
+            self.add_class("mapillary_vistas", i, classid_to_name[i])
+
+        # Add class_ids in an easy accessible way
+        self.class_number = class_ids
+        print(self.class_number)
+
+
         # Iterate trough all images in subset path
         image_paths = glob.iglob(os.path.join(dataset_dir,'images', '*.*'))
         for image_path in image_paths:
           head, tail = os.path.split(image_path)
 
-          if not class_ids:
-              # All classes
-              class_ids = list(range(len(classid_to_name)))
-
-          # Add classes
-          for i in class_ids:
-              self.add_class("mapillary_vistas", i, classid_to_name[i])
-
-          # Add class_ids in an easy accessible way
-          self.class_ids = class_ids
-          print(class_ids)
           # Add images
           image_id = tail[0:-4]
           self.add_image(
@@ -136,6 +138,7 @@ class MapillaryDataset(utils.Dataset):
             one mask per instance.
         class_ids: a 1D array of class IDs of the instance masks.
         """
+        #print("self.class_ids: {}".format(self.class_number))
 
         # If not an InteriorNet image, delegate to parent class.
         image_info = self.image_info[image_id]
@@ -165,10 +168,10 @@ class MapillaryDataset(utils.Dataset):
             class_color = label_im[first_where_index[0], first_where_index[1], :3]
             color_ = tuple(class_color)
             class_id = self.color_to_classid[color_]
-            if class_id in self.class_ids:
+            if class_id in self.class_number:
                 class_ids.append(class_id)
                 instance_masks.append(binary_mask)
-        toc = time.perf_counter()
+        #toc = time.perf_counter()
         #print("Time to add all instances: {}".format(toc-tic))
         tic = toc
         # Pack instance masks into an array
