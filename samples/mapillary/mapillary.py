@@ -74,28 +74,34 @@ class MapillaryDataset(utils.Dataset):
         dataset_dir = "{}/{}".format(dataset_dir, subset)
         self.dataset_dir = dataset_dir
 
-        color_to_classid = {}
-        classid_to_name = []
-
-        for i in range(len(config['labels'])-1):
-            classid_to_name.append(config['labels'][i]['readable'])
-            color_ = tuple(config['labels'][i]['color'])
-            color_to_classid.update({color_: i+1})
-        
-        # As the last entry should be the first
-        classid_to_name.insert(0, config['labels'][65]['readable'])
-        color_ = tuple(config['labels'][65]['color'])
-        color_to_classid.update({color_: 0})
-
-        self.color_to_classid = color_to_classid
-        self.classid_to_name = classid_to_name
+        color_to_classid = {(0, 0, 0): 0}
+        classid_to_name = ['BG']
 
         if not class_ids:
             # All classes
             class_ids = list(range(1, len(classid_to_name)))
 
+        for i in range(len(config['labels'])-1):
+          if i+1 in class_ids:
+              classid_to_name.append(config['labels'][i]['readable'])
+              color_ = tuple(config['labels'][i]['color'])
+              color_to_classid.update({color_: class_ids.index(i+1)})
+          else:
+              color_ = tuple(config['labels'][i]['color'])
+              color_to_classid.update({color_: 0})
+        
+        # As the last entry should be the first
+        #classid_to_name.insert(0, config['labels'][65]['readable'])
+        #color_ = tuple(config['labels'][65]['color'])
+        #color_to_classid.update({color_: 0})
+
+        self.color_to_classid = color_to_classid
+        self.classid_to_name = classid_to_name
+        print(color_to_classid)
+        print(classid_to_name)
+        
         # Add classes
-        for i in class_ids:
+        for i in range(1, len(classid_to_name)):
             self.add_class("mapillary_vistas", i, classid_to_name[i])
 
         # Add class_ids in an easy accessible way
@@ -168,7 +174,7 @@ class MapillaryDataset(utils.Dataset):
             class_color = label_im[first_where_index[0], first_where_index[1], :3]
             color_ = tuple(class_color)
             class_id = self.color_to_classid[color_]
-            if class_id in self.class_number:
+            if class_id !=0:
                 class_ids.append(class_id)
                 instance_masks.append(binary_mask)
         #toc = time.perf_counter()
@@ -290,7 +296,7 @@ if __name__ == '__main__':
 
         # Image Augmentation
         # Right/Left flip 50% of the time
-        augmentation = imgaug.augmenters.Fliplr(0.5)
+        #augmentation = imgaug.augmenters.Fliplr(0.5)
 
         # *** This training schedule is an example. Update to your needs ***
 
@@ -299,8 +305,7 @@ if __name__ == '__main__':
         model.train(dataset_train, dataset_val,
                     learning_rate=config.LEARNING_RATE,
                     epochs=40,
-                    layers='heads',
-                    augmentation=augmentation)
+                    layers='heads')
 
         # Training - Stage 2
         # Finetune layers from ResNet stage 4 and up
