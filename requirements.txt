@@ -7,4 +7,5 @@ scikit-image
 opencv-python
 h5py
 imgaug
+pycocotools
 IPython[all]
