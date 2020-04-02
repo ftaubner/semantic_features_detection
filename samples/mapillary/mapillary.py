@@ -161,8 +161,8 @@ class MapillaryDataset(utils.Dataset):
                 values = line.split(" ")
                 color_ = (int(values[1]), int(values[2]), int(values[3]))
                 class_id = self.color_to_classid[color_]
-                if class_id in self.class_number:
-                    class_ids.append(self.class_number.index(class_id) + 1)
+                if class_id !=0:
+                    class_ids.append(class_id)
                     instance_ids.append(int(values[0]))
 
         instance_masks = []
