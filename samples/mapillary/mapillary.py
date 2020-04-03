@@ -112,8 +112,7 @@ class MapillaryDataset(utils.Dataset):
               path=image_path,
               )
 
-
-
+            
     def image_reference(self, image_id):
         """Return the path of the image"""
         
@@ -122,6 +121,15 @@ class MapillaryDataset(utils.Dataset):
             return info["path"]
         else:
             super(self.__class__, self).image_reference(image_id)
+            
+            
+    def load_image(self, image_id):
+        """Load the specified image and return a [H,W,3] Numpy array.
+        """
+        # Load image
+        image = super(MapillaryDataset, self).load_image(image_id)
+        return cv2.resize(image, (768, 768), fx=0, fy=0, interpolation=cv2.INTER_NEAREST)
+    
 
     def load_mask(self, image_id):
         """Load instance masks for the given image.
@@ -228,11 +236,14 @@ if __name__ == '__main__':
     if args.command == "train":
         class TrainConfig(mapvistas):
             NUM_CLASSES = len(selected_classes) + 1
-            STEPS_PER_EPOCH = 20000
-            VALIDATION_STEPS = 2000
+            STEPS_PER_EPOCH = 20
+            VALIDATION_STEPS = 10
             IMAGE_MAX_DIM = 768
             IMAGE_MIN_DIM = 768
-            VALIDATION_STEPS = 4
+            LEARNING_RATE = 0.005
+            USE_MINI_MASK = True
+            MINI_MASK_SHAPE = (64, 64)
+            IMAGES_PER_GPU = 1
         config = TrainConfig()
     else:
         class mapvistas(mapvistas):
