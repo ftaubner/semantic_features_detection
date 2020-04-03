@@ -112,8 +112,7 @@ class MapillaryDataset(utils.Dataset):
               path=image_path,
               )
 
-
-
+            
     def image_reference(self, image_id):
         """Return the path of the image"""
         
@@ -122,6 +121,15 @@ class MapillaryDataset(utils.Dataset):
             return info["path"]
         else:
             super(self.__class__, self).image_reference(image_id)
+            
+            
+    def load_image(self, image_id):
+        """Load the specified image and return a [H,W,3] Numpy array.
+        """
+        # Load image
+        image = super(MapillaryDataset, self).load_image(image_id)
+        return cv2.resize(image, (768, 768), fx=0, fy=0, interpolation=cv2.INTER_NEAREST)
+    
 
     def load_mask(self, image_id):
         """Load instance masks for the given image.
@@ -176,6 +184,7 @@ class MapillaryDataset(utils.Dataset):
             # tic = time.perf_counter()
             instance_mask = np.stack(instance_masks, axis=2)
 
+            #print(class_ids)
             # toc = time.perf_counter()
             # print("Time to create mask: {}".format(toc-tic))
 
@@ -228,11 +237,14 @@ if __name__ == '__main__':
     if args.command == "train":
         class TrainConfig(mapvistas):
             NUM_CLASSES = len(selected_classes) + 1
-            STEPS_PER_EPOCH = 20000
-            VALIDATION_STEPS = 2000
+            STEPS_PER_EPOCH = 1500
+            VALIDATION_STEPS = 100
             IMAGE_MAX_DIM = 768
             IMAGE_MIN_DIM = 768
-            VALIDATION_STEPS = 4
+            LEARNING_RATE = 0.001
+            USE_MINI_MASK = False
+            #MINI_MASK_SHAPE = (64, 64)
+            IMAGES_PER_GPU = 2
         config = TrainConfig()
     else:
         class mapvistas(mapvistas):
@@ -266,9 +278,10 @@ if __name__ == '__main__':
 
     # Load weights
     print("Loading weights ", model_path)
-    model.load_weights(COCO_MODEL_PATH, by_name=True,
-                       exclude=["mrcnn_class_logits", "mrcnn_bbox_fc", 
-                                "mrcnn_bbox", "mrcnn_mask"])
+    #model.load_weights(COCO_MODEL_PATH, by_name=True,
+    #                   exclude=["mrcnn_class_logits", "mrcnn_bbox_fc", 
+    #                            "mrcnn_bbox", "mrcnn_mask"])
+    model.load_weights("/tf/logs/mapvistas20200403T0216/mask_rcnn_mapvistas_0009.h5")
 
     # Train or evaluate
     if args.command == "train":
