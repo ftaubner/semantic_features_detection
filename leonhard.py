@@ -8,7 +8,7 @@ SCRATCH = '/cluster/scratch/erbachj'
 # Install required packages
 !pip install -r /cluster/home/erbachj/requirements.txt
 
-os.chdir('/cluster/home/erbachj/semantic_features/semantic_features_detection/Notebook')
+os.chdir('/cluster/home/erbachj/semantic_features/semantic_features_detection')
 !python setup.py install
 
 # Get dataset and unzip it
