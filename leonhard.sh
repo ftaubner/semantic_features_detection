@@ -3,7 +3,7 @@
 #LOCAL_SCRATCH = "/scratch"  
 #SCRATCH = '/cluster/scratch/erbachj'
 # Install required packages
-pip install --erbachj -r /cluster/home/erbachj/semantic_features/semantic_features_detection/requirements.txt
+pip install --user -r /cluster/home/erbachj/semantic_features/semantic_features_detection/requirements.txt
 
 cd /cluster/home/erbachj/semantic_features/semantic_features_detection
 python setup.py install --prefix=$HOME/python
