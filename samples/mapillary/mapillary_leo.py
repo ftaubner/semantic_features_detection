@@ -32,7 +32,7 @@ from mrcnn import utils
 import mrcnn.model as modellib
 
 # Path to trained weights file
-COCO_MODEL_PATH = os.path.join(ROOT_DIR, "mask_rcnn_coco.h5")
+COCO_MODEL_PATH = os.path.join("/cluster/scratch/erbachj/", "mask_rcnn_coco.h5")
 if not os.path.exists(COCO_MODEL_PATH):
     utils.download_trained_weights(COCO_MODEL_PATH)
 
@@ -247,7 +247,7 @@ if __name__ == '__main__':
             IMAGES_PER_GPU = 2
         config = TrainConfig()
     else:
-        class mapvistas(mapvistas):
+        class InferenceConfig(mapvistas):
             # Set batch size to 1 since we'll be running inference on
             # one image at a time. Batch size = GPU_COUNT * IMAGES_PER_GPU
             GPU_COUNT = 1
