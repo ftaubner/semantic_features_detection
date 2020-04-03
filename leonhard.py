@@ -4,6 +4,7 @@ import os
 
 HOME_DIR = '/cluster/home/erbachj'
 LOCAL_SCRATCH = "/scratch"  
+SCRATCH = '/cluster/scratch/erbachj'
 # Install required packages
 !pip install -r /cluster/home/erbachj/requirements.txt
 
@@ -15,4 +16,4 @@ os.chdir('/cluster/home/erbachj/semantic_features/semantic_features_detection/No
 !unzip -qq /scratch/mapillary_vistas_sample.zip -d /scratch
 
 # run mapillary.py script
-!python3 samples/mapillary/mapillary.py evaluate --dataset=/scratch/mapillary_vistas/ --model=coco --logs=/cluster/home/erbachj/semantic_features/semantic_features_detection/logs
+!python3 samples/mapillary/mapillary.py evaluate --dataset=/scratch/mapillary_vistas/ --model=coco --logs=/cluster/scratch/erbachj/semantic_features/logs
