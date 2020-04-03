@@ -184,6 +184,7 @@ class MapillaryDataset(utils.Dataset):
             # tic = time.perf_counter()
             instance_mask = np.stack(instance_masks, axis=2)
 
+            #print(class_ids)
             # toc = time.perf_counter()
             # print("Time to create mask: {}".format(toc-tic))
 
@@ -236,14 +237,14 @@ if __name__ == '__main__':
     if args.command == "train":
         class TrainConfig(mapvistas):
             NUM_CLASSES = len(selected_classes) + 1
-            STEPS_PER_EPOCH = 20
-            VALIDATION_STEPS = 10
+            STEPS_PER_EPOCH = 1500
+            VALIDATION_STEPS = 100
             IMAGE_MAX_DIM = 768
             IMAGE_MIN_DIM = 768
-            LEARNING_RATE = 0.005
-            USE_MINI_MASK = True
-            MINI_MASK_SHAPE = (64, 64)
-            IMAGES_PER_GPU = 1
+            LEARNING_RATE = 0.001
+            USE_MINI_MASK = False
+            #MINI_MASK_SHAPE = (64, 64)
+            IMAGES_PER_GPU = 2
         config = TrainConfig()
     else:
         class mapvistas(mapvistas):
@@ -277,9 +278,10 @@ if __name__ == '__main__':
 
     # Load weights
     print("Loading weights ", model_path)
-    model.load_weights(COCO_MODEL_PATH, by_name=True,
-                       exclude=["mrcnn_class_logits", "mrcnn_bbox_fc", 
-                                "mrcnn_bbox", "mrcnn_mask"])
+    #model.load_weights(COCO_MODEL_PATH, by_name=True,
+    #                   exclude=["mrcnn_class_logits", "mrcnn_bbox_fc", 
+    #                            "mrcnn_bbox", "mrcnn_mask"])
+    model.load_weights("/tf/logs/mapvistas20200403T0216/mask_rcnn_mapvistas_0009.h5")
 
     # Train or evaluate
     if args.command == "train":
