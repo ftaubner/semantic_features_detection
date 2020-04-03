@@ -1,4 +1,3 @@
-#!usr/bin/env python3
 
 #HOME_DIR = '/cluster/home/erbachj'
 #LOCAL_SCRATCH = "/scratch"  
