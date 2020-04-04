@@ -18,6 +18,8 @@ import imgaug
 import datetime
 import tensorflow as tf
 import keras
+from keras.callbacks import LearningRateScheduler
+
 
 
 # Root directory of the project
@@ -131,7 +133,7 @@ class MapillaryDataset(utils.Dataset):
         """
         # Load image
         image = super(MapillaryDataset, self).load_image(image_id)
-        return cv2.resize(image, (768, 768), fx=0, fy=0, interpolation=cv2.INTER_NEAREST)
+        return cv2.resize(image, (1024, 1024), fx=0, fy=0, interpolation=cv2.INTER_NEAREST)
     
 
     def load_mask(self, image_id):
@@ -161,7 +163,7 @@ class MapillaryDataset(utils.Dataset):
                                                     'instances', '{}..txt'.format(image_info['id']))
 
         instance_im = imageio.imread(instance_mask_path)
-        instance_im = cv2.resize(instance_im, (768, 768), fx=0, fy=0, interpolation=cv2.INTER_NEAREST)
+        instance_im = cv2.resize(instance_im, (1024, 1024), fx=0, fy=0, interpolation=cv2.INTER_NEAREST)
 
         class_ids = []
         instance_ids = []
@@ -240,13 +242,14 @@ if __name__ == '__main__':
     if args.command == "train":
         class TrainConfig(mapvistas):
             NUM_CLASSES = len(selected_classes) + 1
-            STEPS_PER_EPOCH = 100
-            VALIDATION_STEPS = 10
-            IMAGE_MAX_DIM = 768
-            IMAGE_MIN_DIM = 768
+            STEPS_PER_EPOCH = 18000
+            VALIDATION_STEPS = 2000
+            IMAGE_MAX_DIM = 1024
+            IMAGE_MIN_DIM = 1024
             LEARNING_RATE = 0.001
             USE_MINI_MASK = False
             #MINI_MASK_SHAPE = (64, 64)
+            GPU_COUNT = 8
             IMAGES_PER_GPU = 2
         config = TrainConfig()
     else:
@@ -299,8 +302,14 @@ if __name__ == '__main__':
         dataset_val.prepare()
 
         # Image Augmentation
-        # Right/Left flip 50% of the time
-        augmentation = imgaug.augmenters.Fliplr(0.5)
+        augmentation = imgaug.augmenters.Sometimes(
+            0.1,
+            imgaug.augmenters.Affine(rotate=(-4, 4)),
+            imgaug.augmenters.Fliplr(0.5),
+            imgaug.augmenters.Affine(scale=(1, 1.3)),
+            imgaug.augmenters.MultiplyBrightness((0.9, 1.1)),
+            imgaug.augmenter.GaussianBlur(sigma=(0.0, 0.3))
+        )
 
         # Add custom tensorboard callback    
         logdir = os.path.join(
@@ -308,29 +317,45 @@ if __name__ == '__main__':
             )
         tensorboard_callback = tf.keras.callbacks.TensorBoard(args.logs, update_freq = 1000)
 
+        # Learning Rate Scheduler
+        def step_decay_1(epoch):
+            initial_lrate = config.LEARNING_RATE
+            drop = 0.5
+            epochs_drop = 10.0
+            lrate = initial_lrate * math.pow(drop, math.floor((1+epoch)/epochs_drop))
+            return lrate
+        lrate = LearningRateScheduler(step_decay)
+        #Learning Rate Scheduler for training stage 3
+        def step_decay_2(epoch):
+            initial_lrate = config.LEARNING_RATE/5
+            drop = 0.4
+            epochs_drop = 10.0
+            lrate = initial_lrate * math.pow(drop, math.floor((1+epoch)/epochs_drop))
+            return lrate
+        lrate2 = LearningRateScheduler(step_decay_2)
         # *** This training schedule is an example. Update to your needs ***
 
         # Training - Stage 1
         print("Training network heads")
         model.train(dataset_train, dataset_val,
                     learning_rate=config.LEARNING_RATE,
-                    epochs=10,
-                    layers='heads', custom_callbacks = [tensorboard_callback])
+                    epochs=40,
+                    layers='heads', custom_callbacks = [tensorboard_callback, lrate])
 
         # Training - Stage 2
         # Finetune layers from ResNet stage 4 and up
         print("Fine tune Resnet stage 4 and up")
         model.train(dataset_train, dataset_val,
                     learning_rate=config.LEARNING_RATE,
-                    epochs=10,
+                    epochs=120,
                     layers='4+',
-                    augmentation=augmentation, custom_callbacks = [tensorboard_callback])
+                    augmentation=augmentation, custom_callbacks = [tensorboard_callback, lrate])
 
         # Training - Stage 3
         # Fine tune all layers
         print("Fine tune all layers")
         model.train(dataset_train, dataset_val,
                     learning_rate=config.LEARNING_RATE / 10,
-                    epochs=10,
+                    epochs=160,
                     layers='all',
-                    augmentation=augmentation, custom_callbacks = [tensorboard_callback])
+                    augmentation=augmentation, custom_callbacks = [tensorboard_callback, lrate2])
