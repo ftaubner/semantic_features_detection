@@ -16,6 +16,7 @@ import json
 import time
 import imgaug
 import datetime
+import tensorflow as tf
 
 
 # Root directory of the project
