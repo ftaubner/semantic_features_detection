@@ -306,7 +306,7 @@ if __name__ == '__main__':
         logdir = os.path.join(
             "logs", datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
             )
-        tensorboard_callback = keras.callbacks.TensorBoard(args.logs, histogram_freq=1, update_freq = 1000)
+        tensorboard_callback = tf.keras.callbacks.TensorBoard(args.logs, histogram_freq=1, update_freq = 1000)
 
         # *** This training schedule is an example. Update to your needs ***
 
