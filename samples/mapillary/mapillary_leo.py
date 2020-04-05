@@ -324,7 +324,7 @@ if __name__ == '__main__':
             epochs_drop = 10.0
             lrate = initial_lrate * math.pow(drop, math.floor((1+epoch)/epochs_drop))
             return lrate
-        lrate = LearningRateScheduler(step_decay)
+        lrate = LearningRateScheduler(step_decay_1)
         #Learning Rate Scheduler for training stage 3
         def step_decay_2(epoch):
             initial_lrate = config.LEARNING_RATE/5
