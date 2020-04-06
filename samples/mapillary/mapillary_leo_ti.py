@@ -304,11 +304,11 @@ if __name__ == '__main__':
         # Image Augmentation
         augmentation = imgaug.augmenters.Sometimes(
             0.1,
-            imgaug.augmenters.Affine(rotate=(-4, 4)),
+            [imgaug.augmenters.Affine(rotate=(-4, 4)),
             imgaug.augmenters.Fliplr(0.5),
             imgaug.augmenters.Affine(scale=(1, 1.3)),
             imgaug.augmenters.MultiplyBrightness((0.9, 1.1)),
-            imgaug.augmenters.GaussianBlur(sigma=(0.0, 0.3))
+            imgaug.augmenters.GaussianBlur(sigma=(0.0, 0.3))]
         )
 
         # Add custom tensorboard callback    
