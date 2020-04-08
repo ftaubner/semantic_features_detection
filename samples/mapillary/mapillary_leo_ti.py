@@ -244,8 +244,8 @@ if __name__ == '__main__':
             NUM_CLASSES = len(selected_classes) + 1
             STEPS_PER_EPOCH = 9000
             VALIDATION_STEPS = 1000
-            IMAGE_MAX_DIM = 1024
-            IMAGE_MIN_DIM = 1024
+            IMAGE_MAX_DIM = 768
+            IMAGE_MIN_DIM = 768
             LEARNING_RATE = 0.001
             USE_MINI_MASK = False
             #MINI_MASK_SHAPE = (64, 64)
