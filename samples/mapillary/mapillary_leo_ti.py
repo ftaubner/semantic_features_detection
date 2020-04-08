@@ -133,7 +133,7 @@ class MapillaryDataset(utils.Dataset):
         """
         # Load image
         image = super(MapillaryDataset, self).load_image(image_id)
-        return cv2.resize(image, (1024, 1024), fx=0, fy=0, interpolation=cv2.INTER_NEAREST)
+        return cv2.resize(image, (768, 768), fx=0, fy=0, interpolation=cv2.INTER_NEAREST)
     
 
     def load_mask(self, image_id):
@@ -163,7 +163,7 @@ class MapillaryDataset(utils.Dataset):
                                                     'instances', '{}..txt'.format(image_info['id']))
 
         instance_im = imageio.imread(instance_mask_path)
-        instance_im = cv2.resize(instance_im, (1024, 1024), fx=0, fy=0, interpolation=cv2.INTER_NEAREST)
+        instance_im = cv2.resize(instance_im, (768, 768), fx=0, fy=0, interpolation=cv2.INTER_NEAREST)
 
         class_ids = []
         instance_ids = []
