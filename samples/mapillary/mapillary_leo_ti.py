@@ -242,8 +242,8 @@ if __name__ == '__main__':
     if args.command == "train":
         class TrainConfig(mapvistas):
             NUM_CLASSES = len(selected_classes) + 1
-            STEPS_PER_EPOCH = 9000
-            VALIDATION_STEPS = 1000
+            STEPS_PER_EPOCH = 18000
+            VALIDATION_STEPS = 2000
             IMAGE_MAX_DIM = 1024
             IMAGE_MIN_DIM = 1024
             LEARNING_RATE = 0.001
