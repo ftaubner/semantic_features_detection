@@ -239,15 +239,15 @@ if __name__ == '__main__':
     if args.command == "train":
         class TrainConfig(mapvistas):
             NUM_CLASSES = len(selected_classes) + 1
-            STEPS_PER_EPOCH = 18000
-            VALIDATION_STEPS = 2000
+            STEPS_PER_EPOCH = 9000
+            VALIDATION_STEPS = 1000
             IMAGE_MAX_DIM = 1024
             IMAGE_MIN_DIM = 1024
             LEARNING_RATE = 0.001
             USE_MINI_MASK = False
             #MINI_MASK_SHAPE = (64, 64)
             GPU_COUNT = 1
-            IMAGES_PER_GPU = 1
+            IMAGES_PER_GPU = 2
         config = TrainConfig()
     else:
         class InferenceConfig(mapvistas):

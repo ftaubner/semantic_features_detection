@@ -2369,8 +2369,8 @@ class MaskRCNN():
             callbacks=callbacks,
             validation_data=val_generator,
             validation_steps=self.config.VALIDATION_STEPS,
-            max_queue_size=2,
-            workers=1,
+            max_queue_size=18,
+            workers=8,
             use_multiprocessing=True,
             verbose=1,
         )
