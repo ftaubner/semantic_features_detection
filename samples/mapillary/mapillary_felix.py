@@ -20,7 +20,7 @@ import tensorflow as tf
 import keras
 from keras.callbacks import LearningRateScheduler
 
-
+from cytools import mask_tools
 
 # Root directory of the project
 ROOT_DIR = os.path.abspath("../../")
@@ -173,16 +173,18 @@ class MapillaryDataset(utils.Dataset):
                     class_ids.append(class_id)
                     instance_ids.append(int(values[0]))
 
-        instance_masks = []
+        #instance_masks = []
 
-        for i in range(len(instance_ids)):
-            instance_masks.append(np.where(instance_im == instance_ids[i], True, False))
+        #for i in range(len(instance_ids)):
+        #    instance_masks.append(np.where(instance_im == instance_ids[i], True, False))
 
         # Pack instance masks into an array
         if class_ids:
             class_ids = np.array(class_ids, dtype=np.int32)
             # tic = time.perf_counter()
-            instance_mask = np.stack(instance_masks, axis=2)
+            #instance_mask = np.stack(instance_masks, axis=2)
+            instance_mask = np.zeros([instance_im.shape[0], instance_im.shape[1], len(instance_ids)], dtype=bool)
+            mask_tools.get_binary_masks(instance_mask, np.array(instance_ids_sorted, dtype=np.uint16), instance_im)
 
             #print(class_ids)
             # toc = time.perf_counter()

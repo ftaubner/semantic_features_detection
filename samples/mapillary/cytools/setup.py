@@ -9,4 +9,4 @@ setup(
     include_dirs=[numpy.get_include()]
 )
 
-# Build with python setup.py build_ext --inplace
+# Build with "python setup.py build_ext --inplace"

@@ -17,5 +17,3 @@ def get_binary_masks(instance_mask, unsigned short[:] instance_ids, unsigned sho
                 if instance_ids[l] == instance_im[i, j]:
                     instance_mask_view[i, j, l] = True
                     break
-                    
-    return instance_mask
