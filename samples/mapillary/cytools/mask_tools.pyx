@@ -3,6 +3,7 @@
 cimport numpy as np
 import numpy as np
 ctypedef np.uint8_t uint8
+ctypedef np.int32_t int32
 
 cimport cython
 
