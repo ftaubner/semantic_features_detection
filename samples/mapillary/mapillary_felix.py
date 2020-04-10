@@ -34,7 +34,7 @@ from pycocotools import mask as maskUtils
 sys.path.append(ROOT_DIR)  # To find local version of the library
 from mrcnn.config import Config
 from mrcnn import utils
-import mrcnn.model as modellib
+import mrcnn.model_felix as modellib
 
 
 class mapvistas(Config):
