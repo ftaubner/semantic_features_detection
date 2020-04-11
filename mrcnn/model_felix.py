@@ -1270,9 +1270,9 @@ def load_image_gt(dataset, config, image_id, augment=False, augmentation=None,
     # Bounding boxes. Note that some boxes might be all zeros
     # if the corresponding mask got cropped out.
     # bbox: [num_instances, (y1, x1, y2, x2)]
-    # bbox = utils.extract_bboxes(mask)
+    bbox = utils.extract_bboxes(mask)
     # WE USE THE COMPILED VERSION HERE:
-    bbox = mask_tools.extract_bboxes(mask)
+    #bbox = mask_tools.extract_bboxes(mask)
 
     # Active classes
     # Different datasets have different classes, so track the
