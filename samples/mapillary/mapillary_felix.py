@@ -267,8 +267,6 @@ if __name__ == '__main__':
         model = modellib.MaskRCNN(mode="inference", config=config,
                                   model_dir=args.logs)
 
-    # Load weights
-    print("Loading weights ", model_path)
     # Select weights file to load
     if args.model.lower() == "coco":
         # Path to trained weights file
@@ -276,21 +274,29 @@ if __name__ == '__main__':
         if not os.path.exists(COCO_MODEL_PATH):
             utils.download_trained_weights(COCO_MODEL_PATH)
         model_path = COCO_MODEL_PATH
+        # Load weights
+        print("Loading weights ", model_path)
         model.load_weights(model_path, by_name=True,
                           exclude=["mrcnn_class_logits", "mrcnn_bbox_fc", 
                                    "mrcnn_bbox", "mrcnn_mask"])
     elif args.model.lower() == "last":
         # Find last trained weights
         model_path = model.find_last()
+        # Load weights
+        print("Loading weights ", model_path)
         model.load_weights(model_path, by_name=True)
     elif args.model.lower() == "imagenet":
         # Start from ImageNet trained weights
         model_path = model.get_imagenet_weights()
+        # Load weights
+        print("Loading weights ", model_path)
         model.load_weights(model_path, by_name=True,
                           exclude=["mrcnn_class_logits", "mrcnn_bbox_fc", 
                                    "mrcnn_bbox", "mrcnn_mask"])
     else:
         model_path = args.model
+        # Load weights
+        print("Loading weights ", model_path)
         model.load_weights(model_path, by_name=True)
 
     # Train or evaluate
