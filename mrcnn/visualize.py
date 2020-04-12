@@ -23,6 +23,9 @@ from mrcnn import utils
 
 from PIL import Image, ImageDraw, ImageFont
 
+ROOT_DIR = os.path.abspath('../')
+
+
 
 
 ############################################################
@@ -591,7 +594,7 @@ def save_image(image, image_name, boxes, masks, class_ids, scores, class_names, 
             draw.rectangle((x1, y1, x2, y2), outline=color)
 
         # Label
-        font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 15)
+        font = ImageFont.truetype(os.path.join(ROOT_DIR, 'mrcnn/DejaVuSans.ttf'), 15)
         draw.text((x1, y1), "%s %f" % (label, score), (255, 255, 255), font)
 
     masked_image.save(os.path.join(save_dir, '%s.jpg' % (image_name)))
