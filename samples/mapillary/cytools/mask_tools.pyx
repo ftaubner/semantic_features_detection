@@ -9,14 +9,13 @@ cimport cython
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def get_binary_masks(instance_mask, unsigned short[:] instance_ids, unsigned short[:,:] instance_im):
-    cdef uint8[:,:,:] instance_mask_view = instance_mask
-
+def get_binary_masks(uint8[:,:,:] instance_mask, int[:] instance_sizes, unsigned short[:] instance_ids, unsigned short[:,:] instance_im):
     for i in xrange(instance_im.shape[0]):
         for j in xrange(instance_im.shape[1]):
             for l in xrange(instance_ids.shape[0]):
                 if instance_ids[l] == instance_im[i, j]:
-                    instance_mask_view[i, j, l] = True
+                    instance_mask[i, j, l] = True
+                    instance_sizes[l] = instance_sizes[l] + 1
                     break
 
                     

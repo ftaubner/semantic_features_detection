@@ -184,7 +184,16 @@ class MapillaryDataset(utils.Dataset):
             # tic = time.perf_counter()
             #instance_mask = np.stack(instance_masks, axis=2)
             instance_mask = np.zeros([instance_im.shape[0], instance_im.shape[1], len(instance_ids)], dtype=bool)
-            mask_tools.get_binary_masks(instance_mask, np.array(instance_ids, dtype=np.uint16), instance_im)
+            instance_sizes = np.zeros([len(instance_ids)], dtype=np.int32)
+            mask_tools.get_binary_masks(instance_mask, instance_sizes, np.array(instance_ids, dtype=np.uint16), instance_im)
+            shape_before = instance_mask.shape[2]
+            small_masks = np.where(instance_sizes < 80)
+            instance_mask = np.delete(instance_mask, small_masks, axis=2)
+            class_ids = np.delete(class_ids, small_masks)
+            
+            if shape_before - instance_mask.shape[2] > 0:
+                #print("")
+                #print("Removed {}/{} masks because they are too small.".format(shape_before - instance_mask.shape[2], shape_before))
 
             #print(class_ids)
             # toc = time.perf_counter()

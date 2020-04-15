@@ -25,10 +25,6 @@ import keras.models as KM
 
 from mrcnn import utils
 
-import sys
-sys.path.insert(0, "../samples/mapillary")
-from cytools import mask_tools
-
 # Requires TensorFlow 1.3+ and Keras 2.0.8+.
 from distutils.version import LooseVersion
 assert LooseVersion(tf.__version__) >= LooseVersion("1.3")
