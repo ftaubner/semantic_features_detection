@@ -191,7 +191,7 @@ class MapillaryDataset(utils.Dataset):
             instance_mask = np.delete(instance_mask, small_masks, axis=2)
             class_ids = np.delete(class_ids, small_masks)
             
-            if shape_before - instance_mask.shape[2] > 0:
+            #if shape_before - instance_mask.shape[2] > 0:
                 #print("")
                 #print("Removed {}/{} masks because they are too small.".format(shape_before - instance_mask.shape[2], shape_before))
 
