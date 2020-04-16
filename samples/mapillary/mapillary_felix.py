@@ -359,23 +359,27 @@ if __name__ == '__main__':
         print("Training network heads")
         model.train(dataset_train, dataset_val,
                     learning_rate=config.LEARNING_RATE,
-                    epochs=40,
-                    layers='heads', custom_callbacks = [tensorboard_callback, lrate])
+                    epochs=29,
+                    layers='heads', 
+                    augmentation=augmentation,
+                    custom_callbacks = [tensorboard_callback, lrate])
 
         # Training - Stage 2
         # Finetune layers from ResNet stage 4 and up
         print("Fine tune Resnet stage 4 and up")
         model.train(dataset_train, dataset_val,
                     learning_rate=config.LEARNING_RATE,
-                    epochs=120,
+                    epochs=109,
                     layers='4+',
-                    augmentation=augmentation, custom_callbacks = [tensorboard_callback, lrate])
+                    augmentation=augmentation, 
+                    custom_callbacks = [tensorboard_callback, lrate])
 
         # Training - Stage 3
         # Fine tune all layers
         print("Fine tune all layers")
         model.train(dataset_train, dataset_val,
                     learning_rate=config.LEARNING_RATE / 10,
-                    epochs=160,
+                    epochs=149,
                     layers='all',
-                    augmentation=augmentation, custom_callbacks = [tensorboard_callback, lrate2])
+                    augmentation=augmentation, 
+                    custom_callbacks = [tensorboard_callback, lrate2])
