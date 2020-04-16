@@ -341,7 +341,7 @@ if __name__ == '__main__':
         def step_decay_1(epoch):
             initial_lrate = config.LEARNING_RATE
             drop = 0.5
-            epochs_drop = 10.0
+            epochs_drop = 20.0
             lrate = initial_lrate * math.pow(drop, math.floor((1+epoch)/epochs_drop))
             return lrate
         lrate = LearningRateScheduler(step_decay_1)
