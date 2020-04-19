@@ -60,13 +60,16 @@ class mapvistas(Config):
 
 
 class MapillaryDataset(utils.Dataset):
-    def load_vistas(self, dataset_dir, subset, class_ids=None):
+    def load_vistas(self, dataset_dir, subset, class_ids=None, config):
         """Load a subset of the Mapillary Vistas dataset.
         dataset_dir: The root directory of the Mapillary Vistas dataset.
         subset: What to load (training, testing, validation) subset should be in the file ~/dataset_dir/subset
         class_ids: If provided, only loads images that have the given classes.
         return_coco: If True, returns the COCO object.
         """
+        # Save configuragions
+        self.config = config
+        
         # Read config.json file 
         with open("{}/config.json".format(dataset_dir)) as json_file:
           config = json.load(json_file)
@@ -128,7 +131,10 @@ class MapillaryDataset(utils.Dataset):
         """
         # Load image
         image = super(MapillaryDataset, self).load_image(image_id)
-        return cv2.resize(image, (1024, 1024), fx=0, fy=0, interpolation=cv2.INTER_NEAREST)
+        image, _, scale, padding, _ = utils.resize_image(image, min_dim=self.config.IMAGE_MIN_DIM, max_dim=self.config.IMAGE_MAX_DIM, min_scale=None, mode="square")
+        self.MASK_SCALE = scale
+        self.MASK_PADDING = padding
+        return image
     
 
     def load_mask(self, image_id):
@@ -158,7 +164,7 @@ class MapillaryDataset(utils.Dataset):
                                                     'instances', '{}..txt'.format(image_info['id']))
 
         instance_im = cv2.imread(instance_mask_path, cv2.IMREAD_UNCHANGED)
-        instance_im = cv2.resize(instance_im, (1024, 1024), fx=0, fy=0, interpolation=cv2.INTER_NEAREST)
+        instance_im = resize_mask(instance_im, self.MASK_SCALE, self.MASK_PADDING):
 
         class_ids = []
         instance_ids = []
