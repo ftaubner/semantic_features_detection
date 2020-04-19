@@ -319,12 +319,12 @@ if __name__ == '__main__':
         # Training dataset. Use the training set and 35K from the
         # validation set, as as in the Mask RCNN paper.
         dataset_train = MapillaryDataset()
-        dataset_train.load_vistas(args.dataset, "training", class_ids=selected_classes)
+        dataset_train.load_vistas(args.dataset, "training", class_ids=selected_classes, config=config)
         dataset_train.prepare()
 
         # Validation dataset
         dataset_val = MapillaryDataset()
-        dataset_val.load_vistas(args.dataset, subset='validation', class_ids=selected_classes)
+        dataset_val.load_vistas(args.dataset, subset='validation', class_ids=selected_classes, config=config)
         dataset_val.prepare()
 
         # Image Augmentation
