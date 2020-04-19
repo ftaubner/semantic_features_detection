@@ -60,7 +60,7 @@ class mapvistas(Config):
 
 
 class MapillaryDataset(utils.Dataset):
-    def load_vistas(self, dataset_dir, subset, class_ids=None, config):
+    def load_vistas(self, dataset_dir, subset, config, class_ids=None):
         """Load a subset of the Mapillary Vistas dataset.
         dataset_dir: The root directory of the Mapillary Vistas dataset.
         subset: What to load (training, testing, validation) subset should be in the file ~/dataset_dir/subset
