@@ -164,7 +164,7 @@ class MapillaryDataset(utils.Dataset):
                                                     'instances', '{}..txt'.format(image_info['id']))
 
         instance_im = cv2.imread(instance_mask_path, cv2.IMREAD_UNCHANGED)
-        instance_im = resize_mask(instance_im, self.MASK_SCALE, self.MASK_PADDING):
+        instance_im = resize_mask(instance_im, self.MASK_SCALE, self.MASK_PADDING)
 
         class_ids = []
         instance_ids = []
