@@ -1208,8 +1208,8 @@ def load_image_gt(dataset, config, image_id, augment=False, augmentation=None,
         defined in MINI_MASK_SHAPE.
     """
     # Load image and mask
-    image = dataset.load_image(image_id)
-    mask, class_ids = dataset.load_mask(image_id)
+    image, scale, padding, crop = dataset.load_image(image_id)
+    mask, class_ids = dataset.load_mask(image_id, scale, padding, crop)
     original_shape = image.shape
     image, window, scale, padding, crop = utils.resize_image(
         image,
@@ -2372,7 +2372,7 @@ class MaskRCNN():
             validation_data=val_generator,
             validation_steps=self.config.VALIDATION_STEPS,
             max_queue_size=18,
-            workers=8,
+            workers=1,
             use_multiprocessing=True,
             verbose=1,
         )

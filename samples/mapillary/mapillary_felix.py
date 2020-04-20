@@ -131,13 +131,17 @@ class MapillaryDataset(utils.Dataset):
         """
         # Load image
         image = super(MapillaryDataset, self).load_image(image_id)
-        image, _, scale, padding, _ = utils.resize_image(image, min_dim=self.config.IMAGE_MIN_DIM, max_dim=self.config.IMAGE_MAX_DIM, min_scale=None, mode="square")
-        self.MASK_SCALE = scale
-        self.MASK_PADDING = padding
-        return image
+        image, _, scale, padding, crop = utils.resize_image(image, 
+                                                            min_dim=self.config.IMAGE_MIN_DIM,
+                                                            max_dim=self.config.IMAGE_MAX_DIM, 
+                                                            min_scale=self.config.IMAGE_MIN_SCALE, 
+                                                            mode="square")
+        # self.MASK_SCALE = scale
+        # self.MASK_PADDING = padding
+        return image, scale, padding, crop
     
 
-    def load_mask(self, image_id):
+    def load_mask(self, image_id, scale, padding, crop):
         """Load instance masks for the given image.
 
         Different datasets use different ways to store masks. This
@@ -164,7 +168,9 @@ class MapillaryDataset(utils.Dataset):
                                                     'instances', '{}..txt'.format(image_info['id']))
 
         instance_im = cv2.imread(instance_mask_path, cv2.IMREAD_UNCHANGED)
-        instance_im = resize_mask(instance_im, self.MASK_SCALE, self.MASK_PADDING)
+        instance_im = np.expand_dims(instance_im, -1)
+        instance_im = utils.resize_mask(instance_im, scale, padding, crop)
+        instance_im = np.squeeze(instance_im)
 
         class_ids = []
         instance_ids = []
