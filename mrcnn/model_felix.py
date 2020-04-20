@@ -1208,16 +1208,16 @@ def load_image_gt(dataset, config, image_id, augment=False, augmentation=None,
         defined in MINI_MASK_SHAPE.
     """
     # Load image and mask
-    image, scale, padding, crop = dataset.load_image(image_id)
+    image, window, scale, padding, crop = dataset.load_image(image_id)
     mask, class_ids = dataset.load_mask(image_id, scale, padding, crop)
     original_shape = image.shape
-    image, window, scale, padding, crop = utils.resize_image(
-        image,
-        min_dim=config.IMAGE_MIN_DIM,
-        min_scale=config.IMAGE_MIN_SCALE,
-        max_dim=config.IMAGE_MAX_DIM,
-        mode=config.IMAGE_RESIZE_MODE)
-    mask = utils.resize_mask(mask, scale, padding, crop)
+    #image, window, scale, padding, crop = utils.resize_image(
+    #    image,
+    #    min_dim=config.IMAGE_MIN_DIM,
+    #    min_scale=config.IMAGE_MIN_SCALE,
+    #    max_dim=config.IMAGE_MAX_DIM,
+    #    mode=config.IMAGE_RESIZE_MODE)
+    #mask = utils.resize_mask(mask, scale, padding, crop)
 
     # Random horizontal flips.
     # TODO: will be removed in a future update in favor of augmentation

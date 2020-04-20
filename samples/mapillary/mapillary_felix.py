@@ -131,14 +131,14 @@ class MapillaryDataset(utils.Dataset):
         """
         # Load image
         image = super(MapillaryDataset, self).load_image(image_id)
-        image, _, scale, padding, crop = utils.resize_image(image, 
-                                                            min_dim=self.config.IMAGE_MIN_DIM,
-                                                            max_dim=self.config.IMAGE_MAX_DIM, 
-                                                            min_scale=self.config.IMAGE_MIN_SCALE, 
-                                                            mode="square")
+        image, window, scale, padding, crop = utils.resize_image(image, 
+                                                                 min_dim=self.config.IMAGE_MIN_DIM,
+                                                                 max_dim=self.config.IMAGE_MAX_DIM, 
+                                                                 min_scale=self.config.IMAGE_MIN_SCALE, 
+                                                                 mode="square")
         # self.MASK_SCALE = scale
         # self.MASK_PADDING = padding
-        return image, scale, padding, crop
+        return image, window, scale, padding, crop
     
 
     def load_mask(self, image_id, scale, padding, crop):
