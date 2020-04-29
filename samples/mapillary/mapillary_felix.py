@@ -260,8 +260,8 @@ if __name__ == '__main__':
     if args.command == "train":
         class TrainConfig(mapvistas):
             NUM_CLASSES = len(selected_classes) + 1
-            STEPS_PER_EPOCH = 9000
-            VALIDATION_STEPS = 1000
+            STEPS_PER_EPOCH = 18000
+            VALIDATION_STEPS = 2000
             IMAGE_MAX_DIM = 1024
             IMAGE_MIN_DIM = 1024
             LEARNING_RATE = 0.001
@@ -381,7 +381,7 @@ if __name__ == '__main__':
         print("Fine tune Resnet stage 4 and up")
         model.train(dataset_train, dataset_val,
                     learning_rate=config.LEARNING_RATE,
-                    epochs=109,
+                    epochs=74,
                     layers='4+',
                     augmentation=augmentation, 
                     custom_callbacks = [tensorboard_callback, lrate])
@@ -391,7 +391,7 @@ if __name__ == '__main__':
         print("Fine tune all layers")
         model.train(dataset_train, dataset_val,
                     learning_rate=config.LEARNING_RATE / 10,
-                    epochs=149,
+                    epochs=104,
                     layers='all',
                     augmentation=augmentation, 
                     custom_callbacks = [tensorboard_callback, lrate2])
