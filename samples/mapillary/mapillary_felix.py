@@ -268,7 +268,7 @@ if __name__ == '__main__':
             USE_MINI_MASK = False
             #MINI_MASK_SHAPE = (64, 64)
             GPU_COUNT = 1
-            IMAGES_PER_GPU = 2
+            IMAGES_PER_GPU = 1
         config = TrainConfig()
     else:
         class InferenceConfig(mapvistas):
