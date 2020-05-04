@@ -35,6 +35,7 @@ sys.path.append(ROOT_DIR)  # To find local version of the library
 from mrcnn.config import Config
 from mrcnn import utils
 import mrcnn.model_felix as modellib
+from samples import inference
 
 
 class mapvistas(Config):
@@ -216,6 +217,12 @@ class MapillaryDataset(utils.Dataset):
             # Call super class to return an empty mask
             return super(MapillaryDataset, self).load_mask(image_id)
 
+def masks2instance_im(masks):
+    instance_im = np.zeros(shape=[masks.shape[0], masks.shape[1]])
+    for i in range(masks.shape[-1]):
+        instance_im[masks[...,i]] = (i + 1)
+    return instance_im
+
 
 ############################################################
 #  Training
@@ -233,7 +240,7 @@ if __name__ == '__main__':
                         help="'train' or 'evaluate' on Mapillary Vistas")
     parser.add_argument('--dataset', required=True,
                         metavar="/path/to/mapillary_vistas/",
-                        help='Directory of the Mapillary Vistas dataset')
+                        help='Directory of the Mapillary Vistas dataset or for inference to kitti dataset')
     parser.add_argument('--model', required=True,
                         metavar="/path/to/weights.h5",
                         help="Path to weights .h5 file")
@@ -395,3 +402,23 @@ if __name__ == '__main__':
                     layers='all',
                     augmentation=augmentation, 
                     custom_callbacks = [tensorboard_callback, lrate2])
+
+        elif args.command == 'evaluate':
+            IMAGE_DIR_LEFT = os.path.join(args.dataset, 'dataset/sequences/04/image_2')
+            SAVE_DIR_MASKS = os.path.join(args.dataset, 'Results/Masks')
+            SAVE_DIR_VIS = os.path.join(args.dataset, 'Results/Visualization')
+
+            inf_model = inference.Inference(os.path.join(args.logs, 'mapillary_felix.h5'))
+
+
+            features = {}
+            features['results'] = []
+            image_paths = glob.iglob(os.path.join(IMAGE_DIR_LEFT, '*.*'))
+            for image_path in image_paths:
+                feature, masks = inf_model.predict(image_path,save_vis=True, save_dir=SAVE_DIR_VIS)
+                features['results'].append(feature)
+                # save instance images
+                instance_im =  masks2instance_im(masks)
+                image_id=os.path.split(image_path)[1][0:-4]
+                cv2.imwrite(os.path.join(SAVE_DIR_MASKS, 'L' + image_id + '.png'), instance_im)
+
