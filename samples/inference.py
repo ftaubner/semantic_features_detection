@@ -61,7 +61,8 @@ class Inference():
         r = results[0]
         image_id=os.path.split(image_path)[1][0:-4]
         if save_vis:
-            visualize.save_image(image = image[:,:,::-1], image_name=image_id, boxes=r['rois'], masks=r['masks'], class_ids=r['class_ids'], class_names=class_names[1:], scores=r['scores'], save_dir=save_dir)
+            class_names = ['Bench', 'Billboard', 'Catch Basin', 'CCTV Camera', 'Fire Hydrant', 'Junction Box', 'Mailbox', 'Manhole', 'Phone Booth', 'Street Light', 'Pole', 'Traffic Sign Frame', 'Utility Pole', 'Traffic Light', 'Traffic Sign (Back)', 'Traffic Sign (Front)', 'Trash Can']
+            visualize.save_image(image = image[:,:,::-1], image_name=image_id, boxes=r['rois'], masks=r['masks'], class_ids=r['class_ids'], class_names=class_names, scores=r['scores'], save_dir=save_dir)
         features = {'image_id': image_id, 'classes': r['class_ids'].tolist(), 'boxes': r['rois'].tolist()}
         return features, r['masks']
 
