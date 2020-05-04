@@ -22,7 +22,7 @@ import mrcnn.model as modellib
 from mrcnn import visualize
 # Import COCO config
 sys.path.append(os.path.join(ROOT_DIR, "samples/mapillary/"))  # To find local version
-import mapillary
+import mapillary_felix
 
 # Directory to save logs and trained model
 MODEL_DIR = os.path.join(ROOT_DIR, "logs")
@@ -33,6 +33,7 @@ class InferenceConfig(mapillary.mapvistas):
     IMAGES_PER_GPU = 1
     DETECTION_MIN_CONFIDENCE = 0
     NUM_CLASSES = 17 + 1
+    POST_NMS_ROIS_INFERENCE = 500
 
 class Inference():
     def __init__(self, weight_dir):
