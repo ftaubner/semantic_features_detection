@@ -28,7 +28,7 @@ import mapillary_felix
 MODEL_DIR = os.path.join(ROOT_DIR, "logs")
 
 
-class InferenceConfig(mapillary.mapvistas):
+class InferenceConfig(mapillary_felix.mapvistas):
     GPU_COUNT = 1
     IMAGES_PER_GPU = 1
     DETECTION_MIN_CONFIDENCE = 0

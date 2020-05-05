@@ -9,4 +9,5 @@ h5py
 imgaug
 pycocotools
 datetime
+wget
 IPython[all]
