@@ -14,4 +14,4 @@ wget --no-check-certificate "https://onedrive.live.com/download?cid=EA356294C626
 unzip -q $TMPDIR/mapillary_vistas.zip -d $TMPDIR
 
 # run mapillary.py script
-python3 samples/mapillary/mapillary_leo_ti.py train --dataset=$TMPDIR/mapillary_vistas --model=coco --logs=/cluster/scratch/erbachj/semantic_features/logs
+python3 samples/mapillary/mapillary_felix.py train --dataset=$TMPDIR/mapillary_vistas --model=coco --logs=/cluster/scratch/erbachj/semantic_features/logs
