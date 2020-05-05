@@ -5,6 +5,8 @@
 # Install required packages
 pip install --user -r /cluster/home/erbachj/semantic_features/semantic_features_detection/requirements.txt
 
+cd /cluster/home/erbachj/semantic_features/semantic_features_detection/samples/mapillary/cytools
+python setup.py build_ext --inplace
 cd /cluster/home/erbachj/semantic_features/semantic_features_detection
 python setup.py install --prefix=$HOME/python
 
