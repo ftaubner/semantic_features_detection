@@ -35,7 +35,7 @@ sys.path.append(ROOT_DIR)  # To find local version of the library
 from mrcnn.config import Config
 from mrcnn import utils
 import mrcnn.model_felix as modellib
-from samples import inference
+# from samples import inference
 
 
 class mapvistas(Config):
@@ -403,22 +403,22 @@ if __name__ == '__main__':
                     augmentation=augmentation, 
                     custom_callbacks = [tensorboard_callback, lrate2])
 
-    elif args.command == 'evaluate':
-        IMAGE_DIR_LEFT = os.path.join(args.dataset, 'dataset/sequences/04/image_2')
-        SAVE_DIR_MASKS = os.path.join(args.dataset, 'Results/Masks')
-        SAVE_DIR_VIS = os.path.join(args.dataset, 'Results/Visualization')
+#     elif args.command == 'evaluate':
+#         IMAGE_DIR_LEFT = os.path.join(args.dataset, 'dataset/sequences/04/image_2')
+#         SAVE_DIR_MASKS = os.path.join(args.dataset, 'Results/Masks')
+#         SAVE_DIR_VIS = os.path.join(args.dataset, 'Results/Visualization')
 
-        inf_model = inference.Inference(os.path.join(args.logs, 'mapillary_felix.h5'))
+#         inf_model = inference.Inference(os.path.join(args.logs, 'mapillary_felix.h5'))
 
 
-        features = {}
-        features['results'] = []
-        image_paths = glob.iglob(os.path.join(IMAGE_DIR_LEFT, '*.*'))
-        for image_path in image_paths:
-            feature, masks = inf_model.predict(image_path,save_vis=True, save_dir=SAVE_DIR_VIS)
-            features['results'].append(feature)
-            # save instance images
-            instance_im =  masks2instance_im(masks)
-            image_id=os.path.split(image_path)[1][0:-4]
-            cv2.imwrite(os.path.join(SAVE_DIR_MASKS, 'L' + image_id + '.png'), instance_im)
+#         features = {}
+#         features['results'] = []
+#         image_paths = glob.iglob(os.path.join(IMAGE_DIR_LEFT, '*.*'))
+#         for image_path in image_paths:
+#             feature, masks = inf_model.predict(image_path,save_vis=True, save_dir=SAVE_DIR_VIS)
+#             features['results'].append(feature)
+#             # save instance images
+#             instance_im =  masks2instance_im(masks)
+#             image_id=os.path.split(image_path)[1][0:-4]
+#             cv2.imwrite(os.path.join(SAVE_DIR_MASKS, 'L' + image_id + '.png'), instance_im)
 
