@@ -33,8 +33,9 @@ class InferenceConfig(mapillary_felix.mapvistas):
     IMAGES_PER_GPU = 1
     DETECTION_MIN_CONFIDENCE = 0
     NUM_CLASSES = 17 + 1
-    POST_NMS_ROIS_INFERENCE = 500
-
+    IMAGE_MAX_DIM = 1024
+    IMAGE_MIN_DIM = 1024
+    USE_MINI_MASK = False
 class Inference():
     def __init__(self, weight_dir):
         self.config = InferenceConfig()
