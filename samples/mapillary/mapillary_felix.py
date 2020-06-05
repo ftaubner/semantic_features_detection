@@ -56,8 +56,8 @@ class mapvistas(Config):
 
     # Use small images for faster training. Set the limits of the small side
     # the large side, and that determines the image shape.
-    IMAGE_MIN_DIM = 640
-    IMAGE_MAX_DIM = 640
+    IMAGE_MIN_DIM = 1024
+    IMAGE_MAX_DIM = 1024
 
 
 class MapillaryDataset(utils.Dataset):
